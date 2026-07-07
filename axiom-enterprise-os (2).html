@@ -1,0 +1,1826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AXIOM | Enterprise Intelligence OS</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#020508;
+  --surface:rgba(8,12,20,0.88);
+  --surface2:rgba(12,16,26,0.92);
+  --glass:rgba(255,255,255,0.032);
+  --accent:#00d4ff;
+  --accent2:#4f8ef7;
+  --violet:#7c3aed;
+  --green:#00ffaa;
+  --red:#ff3355;
+  --orange:#fb923c;
+  --yellow:#fbbf24;
+  --border:rgba(255,255,255,0.06);
+  --border-glow:rgba(0,212,255,0.25);
+  --text:#dce8ff;
+  --text2:#4a6080;
+  --text3:rgba(255,255,255,0.35);
+  --sidebar-w:252px;
+  --header-h:56px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{color:var(--text);font-family:'Space Grotesk',sans-serif;cursor:default}
+.mono{font-family:'JetBrains Mono',monospace}
+.syne{font-family:'Syne',sans-serif}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:rgba(0,212,255,0.2);border-radius:2px}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ─── PRELOADER ─── */
+#preloader{
+  position:fixed;inset:0;background:#000814;z-index:99999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.scan-line{position:absolute;width:100%;height:2px;background:linear-gradient(90deg,transparent 0%,rgba(0,212,255,0.6) 30%,rgba(0,212,255,1) 50%,rgba(0,212,255,0.6) 70%,transparent 100%);top:0;animation:scan 2.6s cubic-bezier(.4,0,.6,1) infinite;box-shadow:0 0 40px rgba(0,212,255,0.8),0 0 80px rgba(0,212,255,0.3)}
+@keyframes scan{from{top:-2px}to{top:100%}}
+.pl-hex-grid{position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='104' viewBox='0 0 60 104'%3E%3Cpath d='M30 4 L56 18 L56 46 L30 60 L4 46 L4 18 Z' fill='none' stroke='rgba(0,212,255,0.04)' stroke-width='0.5'/%3E%3Cpath d='M30 52 L56 66 L56 94 L30 108 L4 94 L4 66 Z' fill='none' stroke='rgba(0,212,255,0.04)' stroke-width='0.5'/%3E%3C/svg%3E");pointer-events:none}
+.pl-outer{position:relative;margin-bottom:2.4rem}
+.pl-ring-3{width:140px;height:140px;border-radius:50%;border:1px solid rgba(124,58,237,0.12);display:flex;align-items:center;justify-content:center;animation:spin 18s linear infinite reverse}
+.pl-ring-2{width:112px;height:112px;border-radius:50%;border:1px solid rgba(79,142,247,0.2);display:flex;align-items:center;justify-content:center;animation:spin 8s linear infinite reverse}
+.pl-ring-1{width:86px;height:86px;border-radius:50%;border:1.5px solid transparent;border-top-color:var(--accent);border-right-color:rgba(0,212,255,0.3);display:flex;align-items:center;justify-content:center;animation:spin 1.4s linear infinite}
+.pl-core{width:54px;height:54px;background:radial-gradient(circle,rgba(0,212,255,0.95),rgba(79,142,247,0.6),transparent);border-radius:50%;box-shadow:0 0 40px var(--accent),0 0 80px rgba(0,212,255,0.4),0 0 120px rgba(0,212,255,0.15);animation:pulse-core 2s ease-in-out infinite}
+@keyframes pulse-core{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pl-logo{font-family:'Syne',sans-serif;font-size:3rem;font-weight:800;letter-spacing:.4em;text-transform:uppercase;background:linear-gradient(90deg,var(--accent) 0%,var(--accent2) 50%,var(--violet) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.3rem;animation:logo-glow 3s ease-in-out infinite}
+@keyframes logo-glow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.3)}}
+.pl-sub{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:rgba(0,212,255,0.6);letter-spacing:.65em;opacity:.8;margin-bottom:2.2rem;text-transform:uppercase}
+.pl-bar-wrap{width:300px;margin-bottom:.8rem}
+.pl-bar{height:2px;background:rgba(255,255,255,0.04);border-radius:2px;overflow:hidden;position:relative}
+.pl-bar::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(0,212,255,0.15),transparent);animation:shimmer 1.5s linear infinite}
+@keyframes shimmer{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.pl-fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--violet));animation:load 2.8s cubic-bezier(.4,0,.2,1) forwards;box-shadow:0 0 16px var(--accent)}
+@keyframes load{0%{width:0}60%{width:65%}80%{width:85%}100%{width:100%}}
+.pl-pct{font-family:'JetBrains Mono',monospace;font-size:.55rem;color:var(--accent);text-align:right;margin-bottom:.8rem;letter-spacing:.15em}
+.pl-status{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--text2);letter-spacing:.18em;text-align:center}
+.pl-dots{display:flex;gap:8px;justify-content:center;margin-top:1.4rem}
+.pl-dot{width:4px;height:4px;border-radius:50%;background:rgba(0,212,255,0.25);animation:dot-pulse 1.2s ease-in-out infinite}
+.pl-dot:nth-child(2){animation-delay:.2s}.pl-dot:nth-child(3){animation-delay:.4s}
+@keyframes dot-pulse{0%,100%{background:rgba(0,212,255,0.25);transform:scale(1)}50%{background:var(--accent);transform:scale(1.6)}}
+
+/* ─── CANVAS BG ─── */
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* ─── GRID OVERLAY ─── */
+.grid-overlay{
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background-image:linear-gradient(rgba(0,212,255,0.016) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.016) 1px,transparent 1px);
+  background-size:80px 80px;
+}
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse 100% 100% at 50% 50%,transparent 40%,rgba(0,0,0,0.7) 100%)}
+
+/* ─── LAYOUT ─── */
+#app{display:flex;height:100vh;overflow:hidden;position:relative;z-index:2}
+
+/* ─── SIDEBAR ─── */
+#sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  background:rgba(4,8,16,0.97);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  position:relative;z-index:100;
+  backdrop-filter:blur(32px) saturate(1.4);
+}
+#sidebar::before{content:'';position:absolute;top:0;left:0;width:1px;height:100%;background:linear-gradient(180deg,transparent,rgba(0,212,255,0.4),rgba(124,58,237,0.3),transparent);pointer-events:none}
+#sidebar::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:.5;pointer-events:none}
+
+.sb-brand{
+  padding:18px 18px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;flex-shrink:0;cursor:pointer;
+  position:relative;overflow:hidden;
+}
+.sb-brand::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,212,255,0.04),transparent);opacity:0;transition:opacity .3s}
+.sb-brand:hover::after{opacity:1}
+.sb-logo-ring{
+  width:36px;height:36px;border-radius:50%;border:1px solid rgba(0,212,255,0.35);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  background:radial-gradient(circle,rgba(0,212,255,0.18),transparent);
+  box-shadow:0 0 20px rgba(0,212,255,0.2),inset 0 0 12px rgba(0,212,255,0.05);
+  animation:ring-pulse 3.5s ease-in-out infinite;position:relative;
+}
+.sb-logo-ring::before{content:'';position:absolute;inset:-1px;border-radius:50%;border:1px solid transparent;border-top-color:rgba(0,212,255,0.6);animation:spin 4s linear infinite}
+@keyframes ring-pulse{0%,100%{box-shadow:0 0 20px rgba(0,212,255,0.2),inset 0 0 12px rgba(0,212,255,0.05)}50%{box-shadow:0 0 32px rgba(0,212,255,0.4),inset 0 0 16px rgba(0,212,255,0.1)}}
+.sb-logo-dot{width:16px;height:16px;background:radial-gradient(circle,#fff 0%,var(--accent) 40%,var(--accent2) 100%);border-radius:50%;box-shadow:0 0 14px var(--accent)}
+.sb-brand-text{overflow:hidden}
+.sb-name{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;letter-spacing:.15em;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap}
+.sb-tagline{font-family:'JetBrains Mono',monospace;font-size:.5rem;color:var(--text2);letter-spacing:.22em;text-transform:uppercase;margin-top:2px;white-space:nowrap}
+
+.sb-section{padding:10px 14px 4px;flex-shrink:0}
+.sb-section-label{font-size:.5rem;font-family:'JetBrains Mono',monospace;letter-spacing:.28em;color:rgba(255,255,255,0.22);text-transform:uppercase;padding:0 6px;margin-bottom:5px;display:flex;align-items:center;gap:8px}
+.sb-section-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,0.06),transparent)}
+
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-radius:8px;cursor:pointer;
+  border:1px solid transparent;margin-bottom:2px;
+  transition:all .2s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;
+  white-space:nowrap;
+}
+.nav-item::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,212,255,0.07),transparent);opacity:0;transition:opacity .2s}
+.nav-item:hover::before,.nav-item.active::before{opacity:1}
+.nav-item:hover{border-color:rgba(0,212,255,0.12);background:rgba(0,212,255,0.03);transform:translateX(2px)}
+.nav-item.active{background:rgba(0,212,255,0.07);border-color:rgba(0,212,255,0.22);box-shadow:inset 0 0 24px rgba(0,212,255,0.04),0 0 0 1px rgba(0,212,255,0.08);transform:translateX(0)}
+.nav-glow{position:absolute;left:0;top:50%;transform:translateY(-50%);width:2px;height:55%;border-radius:0 2px 2px 0;box-shadow:0 0 10px var(--accent);opacity:0;transition:opacity .2s;background:var(--accent)}
+.nav-item.active .nav-glow{opacity:1}
+
+.nav-icon{
+  width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;
+  font-size:.88rem;flex-shrink:0;
+  border:1px solid rgba(255,255,255,0.07);
+  background:rgba(255,255,255,0.04);
+  transition:all .2s;letter-spacing:0;
+}
+.nav-item.active .nav-icon{border-color:rgba(0,212,255,0.35);background:rgba(0,212,255,0.1);box-shadow:0 0 12px rgba(0,212,255,0.15)}
+.nav-item:hover .nav-icon{border-color:rgba(0,212,255,0.2);background:rgba(0,212,255,0.06)}
+.nav-label{font-size:.78rem;font-weight:500;color:rgba(255,255,255,0.55);transition:color .2s;flex:1}
+.nav-item.active .nav-label,.nav-item:hover .nav-label{color:var(--text)}
+.nav-status{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.ns-live{background:var(--green);box-shadow:0 0 7px var(--green);animation:blink 2.2s ease-in-out infinite}
+.ns-warn{background:var(--yellow);box-shadow:0 0 7px var(--yellow);animation:blink 1.8s ease-in-out infinite}
+.ns-crit{background:var(--red);box-shadow:0 0 7px var(--red);animation:blink 0.9s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* Sidebar mini metrics */
+.sb-metrics{padding:10px 14px 8px;border-top:1px solid var(--border);flex-shrink:0}
+.sb-metric-row{display:flex;justify-content:space-between;align-items:center;padding:4px 6px;margin-bottom:3px}
+.sb-metric-label{font-family:'JetBrains Mono',monospace;font-size:.52rem;color:var(--text2)}
+.sb-metric-val{font-family:'JetBrains Mono',monospace;font-size:.56rem;font-weight:600}
+
+.sb-footer{padding:12px 18px 14px;border-top:1px solid var(--border);flex-shrink:0}
+.sb-system{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.sb-sys-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 9px var(--green);animation:blink 2.2s ease-in-out infinite;flex-shrink:0}
+.sb-sys-text{font-family:'JetBrains Mono',monospace;font-size:.56rem;color:rgba(0,255,170,0.7);letter-spacing:.06em}
+.sb-version{font-family:'JetBrains Mono',monospace;font-size:.48rem;color:rgba(255,255,255,0.16);letter-spacing:.08em}
+
+/* ─── MAIN ─── */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+/* ─── HEADER ─── */
+#header{
+  height:var(--header-h);flex-shrink:0;
+  background:rgba(4,8,16,0.95);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 22px;gap:14px;
+  backdrop-filter:blur(24px);position:relative;z-index:90;
+}
+#header::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,212,255,0.35),rgba(124,58,237,0.2),transparent)}
+
+.hd-breadcrumb{flex:1;display:flex;align-items:center;gap:8px}
+.hd-path{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--text2);letter-spacing:.1em}
+.hd-sep{color:rgba(255,255,255,0.12);font-size:.8rem}
+.hd-module{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent);letter-spacing:.1em;transition:color .3s}
+
+.hd-search{
+  display:flex;align-items:center;gap:8px;padding:0 14px;height:32px;
+  background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:7px;
+  min-width:180px;cursor:pointer;transition:all .2s;
+}
+.hd-search:hover{border-color:rgba(0,212,255,0.2);background:rgba(0,212,255,0.04)}
+.hd-search-icon{font-size:.7rem;color:var(--text2)}
+.hd-search-text{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--text2);flex:1}
+.hd-search-kbd{font-family:'JetBrains Mono',monospace;font-size:.48rem;color:rgba(255,255,255,0.15);padding:2px 5px;border:1px solid rgba(255,255,255,0.08);border-radius:3px}
+
+.hd-clock{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--text);letter-spacing:.12em;padding:5px 12px;background:rgba(255,255,255,0.025);border:1px solid var(--border);border-radius:6px;white-space:nowrap}
+
+.hd-status-bar{display:flex;align-items:center;gap:6px;padding:5px 12px;background:rgba(0,255,170,0.04);border:1px solid rgba(0,255,170,0.12);border-radius:6px}
+.hd-status-dot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 7px var(--green);animation:blink 2.2s ease-in-out infinite}
+.hd-status-text{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:rgba(0,255,170,0.8);white-space:nowrap}
+
+.hd-alert-btn{
+  position:relative;width:34px;height:34px;border-radius:7px;
+  background:rgba(255,51,85,0.07);border:1px solid rgba(255,51,85,0.18);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:all .2s;font-size:.9rem;flex-shrink:0;
+}
+.hd-alert-btn:hover{background:rgba(255,51,85,0.14);border-color:rgba(255,51,85,0.35);box-shadow:0 0 16px rgba(255,51,85,0.15)}
+.hd-badge{position:absolute;top:-5px;right:-5px;width:16px;height:16px;border-radius:50%;background:var(--red);font-size:.46rem;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;justify-content:center;box-shadow:0 0 10px var(--red);border:1.5px solid var(--bg);color:#fff;font-weight:700;animation:badge-pulse 2s ease-in-out infinite}
+@keyframes badge-pulse{0%,100%{box-shadow:0 0 10px var(--red)}50%{box-shadow:0 0 20px var(--red),0 0 40px rgba(255,51,85,0.3)}}
+
+.hd-avatar{
+  width:32px;height:32px;border-radius:8px;
+  background:linear-gradient(135deg,var(--accent),var(--violet));
+  display:flex;align-items:center;justify-content:center;
+  font-size:.68rem;font-weight:700;color:#fff;cursor:pointer;
+  box-shadow:0 0 18px rgba(0,212,255,0.25);flex-shrink:0;
+  border:1px solid rgba(0,212,255,0.3);
+  transition:all .2s;letter-spacing:.05em;
+}
+.hd-avatar:hover{box-shadow:0 0 28px rgba(0,212,255,0.4);transform:scale(1.05)}
+
+/* ─── PROFILE MENU ─── */
+.profile-menu{
+  position:fixed;top:64px;right:22px;width:236px;
+  background:rgba(6,10,18,0.98);border:1px solid var(--border);border-radius:10px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.6),0 0 0 1px rgba(0,212,255,0.06);
+  backdrop-filter:blur(24px);z-index:9000;
+  opacity:0;visibility:hidden;transform:translateY(-8px);
+  transition:all .18s cubic-bezier(.4,0,.2,1);overflow:hidden;
+}
+.profile-menu.open{opacity:1;visibility:visible;transform:translateY(0)}
+.pm-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center}
+.pm-avatar{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--violet));display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:#fff;flex-shrink:0}
+.pm-name{font-size:.74rem;font-weight:600;color:var(--text)}
+.pm-role{font-family:'JetBrains Mono',monospace;font-size:.5rem;color:var(--text2);letter-spacing:.08em;margin-top:2px;text-transform:uppercase}
+.pm-body{padding:8px}
+.pm-item{display:flex;align-items:center;gap:9px;padding:8px 8px;border-radius:6px;cursor:pointer;font-size:.68rem;color:rgba(255,255,255,0.6);transition:all .15s}
+.pm-item:hover{background:rgba(0,212,255,0.06);color:var(--text)}
+.pm-item-icon{width:16px;text-align:center;font-size:.75rem;flex-shrink:0}
+.pm-sep{height:1px;background:var(--border);margin:6px 4px}
+.pm-foot{padding:9px 16px;border-top:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:.5rem;color:var(--text2);letter-spacing:.06em}
+
+/* ─── COMMAND PALETTE ─── */
+#cmdk-overlay{
+  position:fixed;inset:0;z-index:9500;background:rgba(2,4,8,0.72);backdrop-filter:blur(6px);
+  display:flex;align-items:flex-start;justify-content:center;padding-top:12vh;
+  opacity:0;visibility:hidden;transition:opacity .15s ease;
+}
+#cmdk-overlay.open{opacity:1;visibility:visible}
+.cmdk-box{
+  width:min(560px,88vw);background:rgba(8,12,20,0.98);border:1px solid rgba(0,212,255,0.18);
+  border-radius:12px;box-shadow:0 30px 80px rgba(0,0,0,0.65),0 0 0 1px rgba(0,212,255,0.05),0 0 60px rgba(0,212,255,0.06);
+  overflow:hidden;transform:translateY(-10px) scale(.98);transition:transform .18s cubic-bezier(.4,0,.2,1);
+}
+#cmdk-overlay.open .cmdk-box{transform:translateY(0) scale(1)}
+.cmdk-input-row{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border)}
+.cmdk-icon{color:var(--accent);font-size:.95rem}
+#cmdk-input{
+  flex:1;background:none;border:none;outline:none;color:var(--text);
+  font-family:'Space Grotesk',sans-serif;font-size:.86rem;
+}
+#cmdk-input::placeholder{color:var(--text2)}
+.cmdk-esc{font-family:'JetBrains Mono',monospace;font-size:.5rem;color:rgba(255,255,255,0.25);padding:3px 6px;border:1px solid rgba(255,255,255,0.08);border-radius:4px}
+.cmdk-results{max-height:360px;overflow-y:auto;padding:8px}
+.cmdk-group-label{font-family:'JetBrains Mono',monospace;font-size:.5rem;letter-spacing:.2em;color:rgba(255,255,255,0.22);text-transform:uppercase;padding:8px 10px 4px}
+.cmdk-item{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:all .12s}
+.cmdk-item.sel,.cmdk-item:hover{background:rgba(0,212,255,0.08)}
+.cmdk-item-icon{width:26px;height:26px;border-radius:6px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0}
+.cmdk-item-text{flex:1;min-width:0}
+.cmdk-item-name{font-size:.76rem;color:var(--text);font-weight:500}
+.cmdk-item-sub{font-family:'JetBrains Mono',monospace;font-size:.52rem;color:var(--text2);margin-top:1px}
+.cmdk-item-kbd{font-family:'JetBrains Mono',monospace;font-size:.5rem;color:rgba(255,255,255,0.2);padding:2px 5px;border:1px solid rgba(255,255,255,0.07);border-radius:4px;flex-shrink:0}
+.cmdk-empty{padding:28px 16px;text-align:center;color:var(--text2);font-size:.7rem;font-family:'JetBrains Mono',monospace}
+.cmdk-footer{display:flex;gap:14px;padding:9px 16px;border-top:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:.5rem;color:rgba(255,255,255,0.25)}
+.cmdk-footer span{display:flex;align-items:center;gap:5px}
+.cmdk-footer kbd{border:1px solid rgba(255,255,255,0.1);padding:1px 4px;border-radius:3px}
+
+/* ─── WORKSPACE ─── */
+#workspace{flex:1;overflow:hidden;position:relative}
+.panel{display:none;height:100%;overflow-y:auto;overflow-x:hidden;position:absolute;inset:0}
+.panel.active{display:block}
+
+/* ─── HOME PANEL ─── */
+#panel-home{padding:0;overflow-y:auto}
+
+.home-hero{
+  position:relative;padding:36px 32px 28px;overflow:hidden;
+  border-bottom:1px solid var(--border);background:rgba(2,5,10,0.6);
+}
+.home-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 100% at 15% 60%,rgba(0,212,255,0.055),transparent),radial-gradient(ellipse 50% 80% at 85% 40%,rgba(124,58,237,0.045),transparent),radial-gradient(ellipse 40% 60% at 50% 50%,rgba(79,142,247,0.025),transparent);pointer-events:none}
+.hero-corner{position:absolute;width:80px;height:80px;opacity:.35}
+.hero-corner.tl{top:0;left:0;border-top:1px solid var(--accent);border-left:1px solid var(--accent)}
+.hero-corner.br{bottom:0;right:0;border-bottom:1px solid rgba(124,58,237,0.5);border-right:1px solid rgba(124,58,237,0.5)}
+
+.hero-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:5px 14px;border-radius:20px;
+  background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.18);
+  margin-bottom:18px;backdrop-filter:blur(8px);
+}
+.hero-badge-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 9px var(--accent);animation:blink 2s ease-in-out infinite}
+.hero-badge-text{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--accent);letter-spacing:.2em;text-transform:uppercase}
+
+.hero-title{font-family:'Syne',sans-serif;font-size:2.5rem;font-weight:800;line-height:1.08;margin-bottom:.7rem;position:relative;z-index:1}
+.hero-title-main{background:linear-gradient(135deg,#ffffff 10%,rgba(255,255,255,0.9) 30%,var(--accent) 70%,var(--accent2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-title-sub{font-size:.95rem;font-weight:400;color:var(--text2);font-family:'Space Grotesk',sans-serif;display:block;margin-top:6px;letter-spacing:.02em;line-height:1.5;max-width:600px}
+
+.hero-meta{display:flex;align-items:center;gap:12px;margin-top:18px;flex-wrap:wrap}
+.hero-meta-item{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--text2);padding:4px 10px;border:1px solid var(--border);border-radius:4px;background:rgba(255,255,255,0.02)}
+.hero-meta-item .mi-icon{font-size:.85rem}
+.hero-modules-live{display:flex;align-items:center;gap:7px;padding:5px 12px;border-radius:5px;background:rgba(0,255,170,0.05);border:1px solid rgba(0,255,170,0.14)}
+.hml-dot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 7px var(--green);animation:blink 2.2s ease-in-out infinite}
+.hml-text{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:rgba(0,255,170,0.8);letter-spacing:.1em}
+
+/* ─── KPI STRIP ─── */
+.kpi-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:0;border-bottom:1px solid var(--border);background:var(--border)}
+.kpi-card{
+  background:rgba(3,6,12,0.95);padding:16px 14px;position:relative;overflow:hidden;
+  cursor:default;transition:background .2s;
+}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--kpi-color,var(--accent));box-shadow:0 0 12px var(--kpi-color,var(--accent)),0 0 24px rgba(var(--kpi-rgb,0,212,255),0.2)}
+.kpi-card:hover{background:rgba(255,255,255,0.015)}
+.kpi-label{font-family:'JetBrains Mono',monospace;font-size:.5rem;color:var(--text2);letter-spacing:.16em;text-transform:uppercase;margin-bottom:9px}
+.kpi-value{font-family:'Syne',sans-serif;font-size:1.55rem;font-weight:800;color:var(--kpi-color,var(--accent));line-height:1;margin-bottom:4px;text-shadow:0 0 24px var(--kpi-color,var(--accent))}
+.kpi-delta{font-family:'JetBrains Mono',monospace;font-size:.56rem;color:var(--text2);line-height:1.3}
+.kpi-delta.pos{color:var(--green)}
+.kpi-delta.neg{color:var(--red)}
+.kpi-bar{height:2px;border-radius:2px;margin-top:9px;overflow:hidden;background:rgba(255,255,255,0.04)}
+.kpi-bar-fill{height:100%;border-radius:2px;background:var(--kpi-color,var(--accent));box-shadow:0 0 8px var(--kpi-color,var(--accent));width:0;transition:width 1.4s cubic-bezier(.4,0,.2,1)}
+
+/* ─── BODY GRID ─── */
+.home-body{display:grid;grid-template-columns:1fr 330px;gap:0;min-height:calc(100vh - var(--header-h) - 180px - 2px)}
+.home-left{overflow-y:auto;padding:22px;border-right:1px solid var(--border)}
+.home-right{overflow-y:auto;background:rgba(3,5,10,0.5)}
+
+/* ─── SECTION HEADERS ─── */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.section-title{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:rgba(255,255,255,0.3);letter-spacing:.28em;text-transform:uppercase;display:flex;align-items:center;gap:10px}
+.section-title::before{content:'';width:20px;height:1px;background:linear-gradient(90deg,var(--accent),rgba(0,212,255,0.3))}
+.section-action{font-family:'JetBrains Mono',monospace;font-size:.55rem;color:var(--accent);cursor:pointer;transition:opacity .2s;letter-spacing:.1em}
+.section-action:hover{opacity:.7}
+
+/* ─── ALERT ITEMS ─── */
+.alert-item{
+  display:flex;align-items:flex-start;gap:11px;padding:11px 13px;border-radius:8px;
+  border:1px solid rgba(255,255,255,0.04);background:rgba(255,255,255,0.016);
+  margin-bottom:7px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;
+}
+.alert-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--alert-color,var(--accent));box-shadow:0 0 12px var(--alert-color,var(--accent))}
+.alert-item:hover{background:rgba(255,255,255,0.03);border-color:rgba(255,255,255,0.09);transform:translateX(2px)}
+.alert-icon{font-size:.95rem;flex-shrink:0;margin-top:1px;filter:drop-shadow(0 0 4px var(--alert-color,var(--accent)))}
+.alert-body{flex:1;min-width:0}
+.alert-msg{font-size:.77rem;color:var(--text);line-height:1.45;margin-bottom:5px}
+.alert-msg strong{color:var(--alert-color,var(--accent))}
+.alert-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.alert-source{font-family:'JetBrains Mono',monospace;font-size:.54rem;color:var(--text2)}
+.alert-time{font-family:'JetBrains Mono',monospace;font-size:.52rem;color:rgba(255,255,255,0.18)}
+.alert-sev{font-family:'JetBrains Mono',monospace;font-size:.5rem;padding:2px 7px;border-radius:3px;font-weight:700;letter-spacing:.1em}
+.sev-crit{color:var(--red);background:rgba(255,51,85,0.1);border:1px solid rgba(255,51,85,0.22)}
+.sev-warn{color:var(--yellow);background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.22)}
+.sev-info{color:var(--accent);background:rgba(0,212,255,0.07);border:1px solid rgba(0,212,255,0.18)}
+
+/* ─── DASHBOARD QUICK GRID ─── */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.dash-quick-card{
+  border:1px solid var(--border);border-radius:9px;padding:14px 15px;
+  background:rgba(255,255,255,0.016);cursor:pointer;transition:all .22s;position:relative;overflow:hidden;
+}
+.dash-quick-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--dq-color,var(--accent)),transparent);opacity:.8}
+.dash-quick-card::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 20% 0%,rgba(var(--dq-rgb,0,212,255),0.04),transparent);pointer-events:none}
+.dash-quick-card:hover{background:rgba(255,255,255,0.038);border-color:rgba(255,255,255,0.1);transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,0.5)}
+.dq-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.dq-icon{font-size:1.15rem;filter:drop-shadow(0 0 4px var(--dq-color,var(--accent)))}
+.dq-arrow{font-size:.7rem;color:rgba(255,255,255,0.15);transition:color .2s}
+.dash-quick-card:hover .dq-arrow{color:var(--dq-color,var(--accent))}
+.dq-name{font-size:.82rem;font-weight:600;color:var(--text);margin-bottom:5px}
+.dq-status{display:flex;align-items:center;gap:5px}
+.dq-dot{width:4px;height:4px;border-radius:50%;background:var(--dq-color,var(--accent));box-shadow:0 0 6px var(--dq-color,var(--accent))}
+.dq-txt{font-family:'JetBrains Mono',monospace;font-size:.54rem;color:var(--text2)}
+
+/* ─── ECOSYSTEM FLOW ─── */
+.eco-section{padding:18px}
+.eco-title{font-family:'JetBrains Mono',monospace;font-size:.57rem;color:rgba(255,255,255,0.28);letter-spacing:.24em;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.eco-title::before{content:'';width:14px;height:1px;background:linear-gradient(90deg,var(--violet),rgba(124,58,237,0.3))}
+.eco-flow{display:flex;flex-direction:column;gap:0}
+.eco-node{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;
+  border-radius:8px;border:1px solid rgba(255,255,255,0.045);
+  background:rgba(255,255,255,0.016);cursor:pointer;transition:all .2s;
+  position:relative;
+}
+.eco-node:hover{background:rgba(255,255,255,0.038);border-color:rgba(255,255,255,0.09);transform:translateX(3px)}
+.eco-node.eco-active{border-color:rgba(0,212,255,0.28);background:rgba(0,212,255,0.055);box-shadow:0 0 24px rgba(0,212,255,0.06)}
+.eco-connector{
+  width:1px;height:22px;
+  background:linear-gradient(180deg,rgba(0,212,255,0.45),rgba(124,58,237,0.45));
+  margin-left:22px;position:relative;overflow:visible;
+}
+.eco-connector::after{
+  content:'▾';position:absolute;bottom:-8px;left:-4px;
+  color:rgba(124,58,237,0.7);font-size:.6rem;
+  animation:flow-drop 1.8s ease-in-out infinite;
+}
+@keyframes flow-drop{0%{opacity:0;transform:translateY(-5px)}40%{opacity:1}100%{opacity:0;transform:translateY(5px)}}
+.eco-node-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.82rem;flex-shrink:0;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);transition:all .2s}
+.eco-node:hover .eco-node-icon{border-color:rgba(255,255,255,0.15);background:rgba(255,255,255,0.06)}
+.eco-node-info{flex:1;min-width:0}
+.eco-node-name{font-size:.78rem;font-weight:600;color:var(--text);margin-bottom:2px}
+.eco-node-metric{font-family:'JetBrains Mono',monospace;font-size:.54rem;color:var(--text2)}
+.eco-node-signal{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+
+/* ─── SYSTEM STATUS BOX ─── */
+.sys-status-box{margin-top:18px;padding:13px 14px;border-radius:8px;background:rgba(0,212,255,0.035);border:1px solid rgba(0,212,255,0.1)}
+.sys-status-title{font-family:'JetBrains Mono',monospace;font-size:.54rem;color:var(--accent);letter-spacing:.22em;margin-bottom:9px;opacity:.7}
+.sys-status-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0}
+.sys-status-key{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--text2)}
+.sys-status-val{font-family:'JetBrains Mono',monospace;font-size:.58rem;font-weight:600}
+.sv-ok{color:var(--green)}
+.sv-warn{color:var(--yellow)}
+.sv-crit{color:var(--red)}
+.sys-footer{margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:.48rem;color:rgba(255,255,255,0.16);text-align:center;letter-spacing:.1em}
+
+/* ─── IFRAME PANELS ─── */
+.iframe-panel{height:100%;display:none;flex-direction:column}
+.iframe-panel.panel-if-active{display:flex}
+
+.iframe-header{
+  padding:12px 20px;flex-shrink:0;
+  background:rgba(4,8,16,0.96);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:13px;backdrop-filter:blur(20px);
+  position:relative;
+}
+.iframe-header::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,212,255,0.2),transparent)}
+.iframe-module-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);transition:all .2s}
+.iframe-title{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;color:var(--text)}
+.iframe-url{font-family:'JetBrains Mono',monospace;font-size:.56rem;color:var(--text2);margin-top:2px}
+.iframe-badge{padding:3px 9px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+.ib-live{color:var(--green);background:rgba(0,255,170,0.07);border:1px solid rgba(0,255,170,0.18)}
+.iframe-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+.if-btn{
+  padding:5px 12px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:.58rem;
+  background:rgba(255,255,255,0.035);border:1px solid var(--border);color:var(--text3);
+  cursor:pointer;transition:all .2s;white-space:nowrap;
+}
+.if-btn:hover{background:rgba(0,212,255,0.07);border-color:rgba(0,212,255,0.22);color:var(--accent)}
+.if-btn.primary{background:rgba(0,212,255,0.08);border-color:rgba(0,212,255,0.2);color:var(--accent)}
+.if-btn.primary:hover{background:rgba(0,212,255,0.14);border-color:rgba(0,212,255,0.35)}
+
+/* iframe notice/fallback */
+.iframe-notice{
+  flex-shrink:0;padding:9px 20px;
+  background:rgba(251,191,36,0.04);border-bottom:1px solid rgba(251,191,36,0.1);
+  display:flex;align-items:center;gap:10px;
+}
+.in-icon{font-size:.8rem;color:var(--yellow)}
+.in-text{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:rgba(251,191,36,0.7);flex:1}
+.in-link{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:2px;white-space:nowrap}
+
+.iframe-wrap{flex:1;position:relative;overflow:hidden}
+.iframe-loading{
+  position:absolute;inset:0;background:rgba(2,5,10,0.94);z-index:10;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  backdrop-filter:blur(12px);transition:opacity .4s;
+}
+.if-load-ring{width:54px;height:54px;border-radius:50%;border:1px solid rgba(0,212,255,0.12);display:flex;align-items:center;justify-content:center;position:relative}
+.if-load-ring::before{content:'';position:absolute;inset:-2px;border-radius:50%;border:2px solid transparent;border-top-color:var(--accent);border-right-color:rgba(0,212,255,0.3);animation:spin 1.1s linear infinite}
+.if-load-ring::after{content:'';position:absolute;inset:-6px;border-radius:50%;border:1px solid transparent;border-bottom-color:rgba(124,58,237,0.4);animation:spin 2.5s linear infinite reverse}
+.if-load-dot{width:18px;height:18px;background:radial-gradient(circle,var(--accent),rgba(79,142,247,0.5),transparent);border-radius:50%;box-shadow:0 0 24px var(--accent)}
+.if-load-text{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--text2);letter-spacing:.2em}
+.if-load-bar{width:220px;height:1px;background:rgba(255,255,255,0.04);border-radius:1px;overflow:hidden}
+.if-load-bar-fill{height:100%;background:linear-gradient(90deg,transparent,var(--accent),var(--violet),transparent);background-size:200% 100%;animation:if-shimmer 1.6s ease-in-out infinite}
+@keyframes if-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.if-load-url{font-family:'JetBrains Mono',monospace;font-size:.52rem;color:rgba(255,255,255,0.18);letter-spacing:.12em}
+
+/* iframe fallback panel */
+.iframe-fallback{
+  position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:20px;background:rgba(2,5,10,0.98);z-index:5;padding:40px;
+}
+.iframe-fallback.show{display:flex}
+.ifb-icon{font-size:3rem;filter:drop-shadow(0 0 20px rgba(0,212,255,0.3))}
+.ifb-title{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);text-align:center}
+.ifb-desc{font-size:.82rem;color:var(--text2);text-align:center;max-width:420px;line-height:1.6}
+.ifb-url{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent);padding:10px 18px;background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.18);border-radius:7px;text-align:center}
+.ifb-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.ifb-btn{
+  padding:9px 22px;border-radius:7px;font-family:'JetBrains Mono',monospace;font-size:.65rem;
+  cursor:pointer;transition:all .2s;letter-spacing:.1em;
+}
+.ifb-btn.primary{background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);color:var(--accent)}
+.ifb-btn.primary:hover{background:rgba(0,212,255,0.18);border-color:rgba(0,212,255,0.5)}
+.ifb-btn.secondary{background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text2)}
+.ifb-btn.secondary:hover{background:rgba(255,255,255,0.08);color:var(--text)}
+.ifb-note{font-family:'JetBrains Mono',monospace;font-size:.52rem;color:rgba(255,255,255,0.2);text-align:center;max-width:360px;line-height:1.6}
+
+.the-iframe{width:100%;height:100%;border:none;background:#020508;display:block}
+
+/* ─── TOAST ─── */
+#toasts{position:fixed;bottom:22px;right:22px;z-index:9999;display:flex;flex-direction:column;gap:7px;pointer-events:none}
+.toast-item{
+  display:flex;align-items:center;gap:9px;
+  padding:10px 15px;border-radius:8px;
+  background:rgba(6,10,18,0.97);border:1px solid var(--border);
+  backdrop-filter:blur(20px);min-width:250px;max-width:360px;
+  animation:toast-in .3s cubic-bezier(.4,0,.2,1);border-left:2px solid var(--t-color,var(--accent));
+  box-shadow:0 6px 30px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.02);
+}
+@keyframes toast-in{from{opacity:0;transform:translateX(24px) scale(.95)}to{opacity:1;transform:translateX(0) scale(1)}}
+.toast-icon{font-size:.8rem;flex-shrink:0}
+.toast-msg{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:rgba(255,255,255,0.8);line-height:1.4}
+
+/* ─── ALERT PANEL ─── */
+#alert-panel{
+  position:fixed;top:var(--header-h);right:0;width:370px;height:calc(100vh - var(--header-h));
+  background:rgba(3,6,14,0.98);border-left:1px solid var(--border);
+  backdrop-filter:blur(32px);z-index:200;transform:translateX(100%);
+  transition:transform .32s cubic-bezier(.4,0,.2,1);overflow-y:auto;
+}
+#alert-panel::before{content:'';position:absolute;top:0;left:0;bottom:0;width:1px;background:linear-gradient(180deg,transparent,rgba(255,51,85,0.3),rgba(251,191,36,0.2),transparent);pointer-events:none}
+#alert-panel.open{transform:translateX(0)}
+.ap-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;position:sticky;top:0;background:rgba(3,6,14,0.98);z-index:1;backdrop-filter:blur(20px)}
+.ap-title{font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;color:var(--text);flex:1;display:flex;align-items:center;gap:8px}
+.ap-title-icon{font-size:1rem;filter:drop-shadow(0 0 6px var(--red))}
+.ap-count{padding:3px 9px;border-radius:4px;background:rgba(255,51,85,0.1);border:1px solid rgba(255,51,85,0.22);font-family:'JetBrains Mono',monospace;font-size:.56rem;color:var(--red);font-weight:700}
+.ap-close{width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,0.04);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.8rem;color:var(--text2);transition:all .2s}
+.ap-close:hover{background:rgba(255,255,255,0.08);color:var(--text);border-color:rgba(255,255,255,0.1)}
+.ap-body{padding:14px}
+.ap-section-label{font-family:'JetBrains Mono',monospace;font-size:.5rem;color:rgba(255,255,255,0.2);letter-spacing:.25em;text-transform:uppercase;margin-bottom:8px;padding:0 2px;display:flex;align-items:center;gap:8px}
+.ap-section-label::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.05)}
+.ap-item{padding:13px;border-radius:8px;border:1px solid rgba(255,255,255,0.045);background:rgba(255,255,255,0.016);margin-bottom:9px;position:relative;overflow:hidden;transition:all .2s;cursor:pointer}
+.ap-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--ai-c,var(--accent));box-shadow:0 0 10px var(--ai-c,var(--accent))}
+.ap-item:hover{background:rgba(255,255,255,0.028);border-color:rgba(255,255,255,0.08)}
+.ap-item-header{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.ap-sev{font-family:'JetBrains Mono',monospace;font-size:.48rem;padding:2px 6px;border-radius:3px;font-weight:700;letter-spacing:.12em}
+.ap-item-title{font-size:.77rem;font-weight:600;color:var(--text);flex:1}
+.ap-time{font-family:'JetBrains Mono',monospace;font-size:.5rem;color:var(--text2);white-space:nowrap}
+.ap-item-body{font-size:.72rem;color:rgba(255,255,255,0.5);line-height:1.55}
+.ap-item-action{font-family:'JetBrains Mono',monospace;font-size:.54rem;color:var(--accent);margin-top:8px;display:flex;align-items:center;gap:4px;opacity:.7}
+.ap-item-action:hover{opacity:1}
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.fu{animation:fadeUp .48s cubic-bezier(.4,0,.2,1) forwards;opacity:0}
+.fu-1{animation-delay:.05s}.fu-2{animation-delay:.10s}.fu-3{animation-delay:.15s}
+.fu-4{animation-delay:.20s}.fu-5{animation-delay:.25s}.fu-6{animation-delay:.30s}.fu-7{animation-delay:.36s}
+
+/* Pulse ring for KPI */
+@keyframes kpi-pulse{0%,100%{opacity:.5}50%{opacity:1}}
+</style>
+</head>
+<body>
+
+<!-- ─── PRELOADER ─── -->
+<div id="preloader">
+  <div class="pl-hex-grid"></div>
+  <div class="scan-line"></div>
+  <div class="pl-outer">
+    <div class="pl-ring-3">
+      <div class="pl-ring-2">
+        <div class="pl-ring-1">
+          <div class="pl-core"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pl-logo syne">AXIOM</div>
+  <div class="pl-sub">Enterprise Intelligence OS</div>
+  <div class="pl-bar-wrap">
+    <div class="pl-pct mono" id="pl-pct">0%</div>
+    <div class="pl-bar"><div class="pl-fill"></div></div>
+  </div>
+  <div class="pl-status mono" id="pl-status">INITIALIZING NEURAL CORE...</div>
+  <div class="pl-dots">
+    <div class="pl-dot"></div>
+    <div class="pl-dot"></div>
+    <div class="pl-dot"></div>
+  </div>
+</div>
+
+<!-- ─── THREE.JS BG ─── -->
+<canvas id="bg-canvas"></canvas>
+<div class="grid-overlay"></div>
+<div class="vignette"></div>
+
+<!-- ─── APP ─── -->
+<div id="app" style="opacity:0;transition:opacity .7s">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <nav id="sidebar">
+    <div class="sb-brand" onclick="showPanel('home')">
+      <div class="sb-logo-ring"><div class="sb-logo-dot"></div></div>
+      <div class="sb-brand-text">
+        <div class="sb-name syne">AXIOM</div>
+        <div class="sb-tagline mono">Intelligence OS · v3.1</div>
+      </div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-section-label">Command Center</div>
+      <div class="nav-item active" id="nav-home" onclick="showPanel('home')">
+        <div class="nav-glow"></div>
+        <div class="nav-icon">⌂</div>
+        <span class="nav-label">Overview</span>
+        <span class="nav-status ns-live"></span>
+      </div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-section-label">Intelligence Modules</div>
+      <div class="nav-item" id="nav-executive" onclick="showPanel('executive')">
+        <div class="nav-glow"></div>
+        <div class="nav-icon">◈</div>
+        <span class="nav-label">Executive</span>
+        <span class="nav-status ns-live"></span>
+      </div>
+      <div class="nav-item" id="nav-sales" onclick="showPanel('sales')">
+        <div class="nav-glow"></div>
+        <div class="nav-icon">◆</div>
+        <span class="nav-label">Sales</span>
+        <span class="nav-status ns-live"></span>
+      </div>
+      <div class="nav-item" id="nav-marketing" onclick="showPanel('marketing')">
+        <div class="nav-glow"></div>
+        <div class="nav-icon">◉</div>
+        <span class="nav-label">Marketing</span>
+        <span class="nav-status ns-warn"></span>
+      </div>
+      <div class="nav-item" id="nav-financial" onclick="showPanel('financial')">
+        <div class="nav-glow"></div>
+        <div class="nav-icon">◇</div>
+        <span class="nav-label">Financial</span>
+        <span class="nav-status ns-live"></span>
+      </div>
+      <div class="nav-item" id="nav-operations" onclick="showPanel('operations')">
+        <div class="nav-glow"></div>
+        <div class="nav-icon">⬡</div>
+        <span class="nav-label">Operations</span>
+        <span class="nav-status ns-crit"></span>
+      </div>
+      <div class="nav-item" id="nav-support" onclick="showPanel('support')">
+        <div class="nav-glow"></div>
+        <div class="nav-icon">◎</div>
+        <span class="nav-label">Customer Support</span>
+        <span class="nav-status ns-warn"></span>
+      </div>
+    </div>
+
+    <div class="sb-metrics">
+      <div class="sb-section-label" style="margin-bottom:6px">Live Pulse</div>
+      <div class="sb-metric-row">
+        <span class="sb-metric-label">Health Score</span>
+        <span class="sb-metric-val" style="color:var(--green)">87.4</span>
+      </div>
+      <div class="sb-metric-row">
+        <span class="sb-metric-label">Risk Index</span>
+        <span class="sb-metric-val" style="color:var(--red)">6.3 ↑</span>
+      </div>
+      <div class="sb-metric-row">
+        <span class="sb-metric-label">AI Stability</span>
+        <span class="sb-metric-val" style="color:var(--accent)">98.6%</span>
+      </div>
+      <div class="sb-metric-row">
+        <span class="sb-metric-label">Active Alerts</span>
+        <span class="sb-metric-val" style="color:var(--yellow)">5</span>
+      </div>
+    </div>
+
+    <div class="sb-footer">
+      <div class="sb-system">
+        <div class="sb-sys-dot"></div>
+        <span class="sb-sys-text mono">ALL SYSTEMS NOMINAL</span>
+      </div>
+      <div class="sb-version mono">BUILD 2026.07.07 · 6 MODULES LIVE</div>
+    </div>
+  </nav>
+
+  <!-- ═══ MAIN ═══ -->
+  <div id="main">
+
+    <!-- HEADER -->
+    <header id="header">
+      <div class="hd-breadcrumb">
+        <span class="hd-path mono">AXIOM OS</span>
+        <span class="hd-sep">/</span>
+        <span class="hd-module mono" id="hd-module-name">OVERVIEW</span>
+      </div>
+
+      <div class="hd-search" onclick="openCmdk()" title="Search intelligence (⌘K)">
+        <span class="hd-search-icon">⌕</span>
+        <span class="hd-search-text mono">Search intelligence...</span>
+        <span class="hd-search-kbd">⌘K</span>
+      </div>
+
+      <div class="hd-clock mono" id="hd-clock">00:00:00 UTC</div>
+
+      <div class="hd-status-bar">
+        <div class="hd-status-dot"></div>
+        <span class="hd-status-text mono">6 MODULES LIVE</span>
+      </div>
+
+      <div class="hd-alert-btn" onclick="toggleAlerts()" title="AI Alert Center">
+        🔔<div class="hd-badge">5</div>
+      </div>
+
+      <div class="hd-avatar" title="Enterprise Admin" onclick="toggleProfileMenu(event)">AX</div>
+    </header>
+
+    <!-- WORKSPACE -->
+    <div id="workspace">
+
+      <!-- ─── HOME PANEL ─── -->
+      <div class="panel active" id="panel-home">
+
+        <!-- HERO -->
+        <div class="home-hero fu fu-1">
+          <div class="hero-corner tl"></div>
+          <div class="hero-corner br"></div>
+          <div class="hero-badge">
+            <div class="hero-badge-dot"></div>
+            <span class="hero-badge-text">Enterprise Intelligence Platform · Live</span>
+          </div>
+          <h1 class="hero-title">
+            <span class="hero-title-main syne">AXIOM Enterprise Intelligence OS</span>
+            <span class="hero-title-sub">Unified AI-Powered Business Intelligence Ecosystem — 6 Intelligence Modules Connected &amp; Operational</span>
+          </h1>
+          <div class="hero-meta">
+            <div class="hero-modules-live">
+              <div class="hml-dot"></div>
+              <span class="hml-text mono">6/6 MODULES ACTIVE</span>
+            </div>
+            <div class="hero-meta-item"><span class="mi-icon">◈</span><span>Executive Grade</span></div>
+            <div class="hero-meta-item"><span class="mi-icon">⚡</span><span>Real-Time Intelligence</span></div>
+            <div class="hero-meta-item"><span class="mi-icon">🤖</span><span>AI Alert System Online</span></div>
+            <div class="hero-meta-item"><span class="mi-icon">🔒</span><span>Encrypted Pipelines</span></div>
+          </div>
+        </div>
+
+        <!-- KPI STRIP -->
+        <div class="kpi-strip fu fu-2">
+          <div class="kpi-card" style="--kpi-color:#00ffaa">
+            <div class="kpi-label">Enterprise Health</div>
+            <div class="kpi-value">87.4</div>
+            <div class="kpi-delta pos">▲ +2.1 pts this week</div>
+            <div class="kpi-bar"><div class="kpi-bar-fill" data-width="87"></div></div>
+          </div>
+          <div class="kpi-card" style="--kpi-color:#00d4ff">
+            <div class="kpi-label">Global Revenue</div>
+            <div class="kpi-value">$4.2M</div>
+            <div class="kpi-delta pos">▲ +8.4% MoM</div>
+            <div class="kpi-bar"><div class="kpi-bar-fill" data-width="74"></div></div>
+          </div>
+          <div class="kpi-card" style="--kpi-color:#ff3355">
+            <div class="kpi-label">Risk Index</div>
+            <div class="kpi-value">6.3</div>
+            <div class="kpi-delta neg">▲ +1.2 elevated</div>
+            <div class="kpi-bar"><div class="kpi-bar-fill" data-width="63"></div></div>
+          </div>
+          <div class="kpi-card" style="--kpi-color:#fbbf24">
+            <div class="kpi-label">Active Incidents</div>
+            <div class="kpi-value">3</div>
+            <div class="kpi-delta neg">▲ +1 from yesterday</div>
+            <div class="kpi-bar"><div class="kpi-bar-fill" data-width="30"></div></div>
+          </div>
+          <div class="kpi-card" style="--kpi-color:#4f8ef7">
+            <div class="kpi-label">Op. Efficiency</div>
+            <div class="kpi-value">79.1%</div>
+            <div class="kpi-delta pos">▲ +3.5% this week</div>
+            <div class="kpi-bar"><div class="kpi-bar-fill" data-width="79"></div></div>
+          </div>
+          <div class="kpi-card" style="--kpi-color:#7c3aed">
+            <div class="kpi-label">Customer Sentiment</div>
+            <div class="kpi-value">72.8</div>
+            <div class="kpi-delta neg">▼ -4.2 pts delays</div>
+            <div class="kpi-bar"><div class="kpi-bar-fill" data-width="73"></div></div>
+          </div>
+          <div class="kpi-card" style="--kpi-color:#22d3ee">
+            <div class="kpi-label">AI Stability</div>
+            <div class="kpi-value">98.6%</div>
+            <div class="kpi-delta pos">▲ All models nominal</div>
+            <div class="kpi-bar"><div class="kpi-bar-fill" data-width="99"></div></div>
+          </div>
+        </div>
+
+        <!-- BODY GRID -->
+        <div class="home-body">
+
+          <!-- LEFT -->
+          <div class="home-left">
+
+            <!-- Alerts -->
+            <div class="section-header fu fu-3">
+              <div class="section-title">AI Intelligence Alerts</div>
+              <span class="section-action" onclick="toggleAlerts()">VIEW ALL →</span>
+            </div>
+
+            <div class="alert-item fu fu-3" style="--alert-color:#ff3355" onclick="showPanel('operations')">
+              <div class="alert-icon">⚠</div>
+              <div class="alert-body">
+                <div class="alert-msg">Supply chain disruption detected — fulfillment lead times up <strong>+34%</strong>, triggering downstream ops risk</div>
+                <div class="alert-meta">
+                  <span class="alert-sev sev-crit">CRITICAL</span>
+                  <span class="alert-source">Operations Intelligence</span>
+                  <span class="alert-time">2 min ago</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="alert-item fu fu-4" style="--alert-color:#fbbf24" onclick="showPanel('marketing')">
+              <div class="alert-icon">⚡</div>
+              <div class="alert-body">
+                <div class="alert-msg">Marketing campaign spike increasing operational demand by <strong>+22%</strong> above projected baseline</div>
+                <div class="alert-meta">
+                  <span class="alert-sev sev-warn">WARNING</span>
+                  <span class="alert-source">Marketing ↔ Operations</span>
+                  <span class="alert-time">8 min ago</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="alert-item fu fu-4" style="--alert-color:#fbbf24" onclick="showPanel('support')">
+              <div class="alert-icon">◎</div>
+              <div class="alert-body">
+                <div class="alert-msg">Customer dissatisfaction index rising — NPS dropped <strong>-12 pts</strong> due to delayed fulfillment</div>
+                <div class="alert-meta">
+                  <span class="alert-sev sev-warn">WARNING</span>
+                  <span class="alert-source">Customer Support</span>
+                  <span class="alert-time">15 min ago</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="alert-item fu fu-5" style="--alert-color:#ff3355" onclick="showPanel('financial')">
+              <div class="alert-icon">◇</div>
+              <div class="alert-body">
+                <div class="alert-msg">Revenue slowdown in APAC segment — <strong>$340K</strong> below Q3 forecast, runway projections impacted</div>
+                <div class="alert-meta">
+                  <span class="alert-sev sev-crit">CRITICAL</span>
+                  <span class="alert-source">Financial Intelligence</span>
+                  <span class="alert-time">22 min ago</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="alert-item fu fu-5" style="--alert-color:#00d4ff" onclick="showPanel('executive')">
+              <div class="alert-icon">◈</div>
+              <div class="alert-body">
+                <div class="alert-msg">Executive risk index elevated — board review recommended for Q3 operational strategy</div>
+                <div class="alert-meta">
+                  <span class="alert-sev sev-info">INFO</span>
+                  <span class="alert-source">Executive Intelligence</span>
+                  <span class="alert-time">1 hr ago</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dashboard Quick Access -->
+            <div class="section-header fu fu-6" style="margin-top:24px">
+              <div class="section-title">Intelligence Modules</div>
+              <span class="section-action">CLICK TO LAUNCH →</span>
+            </div>
+
+            <div class="dash-grid fu fu-6">
+              <div class="dash-quick-card" style="--dq-color:#00d4ff" onclick="showPanel('executive')">
+                <div class="dq-header">
+                  <div class="dq-icon">◈</div>
+                  <div class="dq-arrow">→</div>
+                </div>
+                <div class="dq-name">Executive Intelligence</div>
+                <div class="dq-status"><div class="dq-dot"></div><span class="dq-txt mono">LIVE · Launch Dashboard</span></div>
+              </div>
+              <div class="dash-quick-card" style="--dq-color:#00ffaa" onclick="showPanel('sales')">
+                <div class="dq-header">
+                  <div class="dq-icon">◆</div>
+                  <div class="dq-arrow">→</div>
+                </div>
+                <div class="dq-name">Sales Intelligence</div>
+                <div class="dq-status"><div class="dq-dot" style="background:#00ffaa;box-shadow:0 0 6px #00ffaa"></div><span class="dq-txt mono">LIVE · Launch Dashboard</span></div>
+              </div>
+              <div class="dash-quick-card" style="--dq-color:#fbbf24" onclick="showPanel('marketing')">
+                <div class="dq-header">
+                  <div class="dq-icon">◉</div>
+                  <div class="dq-arrow">→</div>
+                </div>
+                <div class="dq-name">Marketing Intelligence</div>
+                <div class="dq-status"><div class="dq-dot" style="background:#fbbf24;box-shadow:0 0 6px #fbbf24"></div><span class="dq-txt mono">ALERT · Launch Dashboard</span></div>
+              </div>
+              <div class="dash-quick-card" style="--dq-color:#4f8ef7" onclick="showPanel('financial')">
+                <div class="dq-header">
+                  <div class="dq-icon">◇</div>
+                  <div class="dq-arrow">→</div>
+                </div>
+                <div class="dq-name">Financial Intelligence</div>
+                <div class="dq-status"><div class="dq-dot" style="background:#ff3355;box-shadow:0 0 6px #ff3355"></div><span class="dq-txt mono">CRITICAL · Launch Dashboard</span></div>
+              </div>
+              <div class="dash-quick-card" style="--dq-color:#ff3355" onclick="showPanel('operations')">
+                <div class="dq-header">
+                  <div class="dq-icon">⬡</div>
+                  <div class="dq-arrow">→</div>
+                </div>
+                <div class="dq-name">Operations Intelligence</div>
+                <div class="dq-status"><div class="dq-dot" style="background:#ff3355;box-shadow:0 0 6px #ff3355"></div><span class="dq-txt mono">CRITICAL · Launch Dashboard</span></div>
+              </div>
+              <div class="dash-quick-card" style="--dq-color:#7c3aed" onclick="showPanel('support')">
+                <div class="dq-header">
+                  <div class="dq-icon">◎</div>
+                  <div class="dq-arrow">→</div>
+                </div>
+                <div class="dq-name">Customer Support</div>
+                <div class="dq-status"><div class="dq-dot" style="background:#fbbf24;box-shadow:0 0 6px #fbbf24"></div><span class="dq-txt mono">WARNING · Launch Dashboard</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT: Ecosystem Flow -->
+          <div class="home-right">
+            <div class="eco-section">
+              <div class="eco-title">Enterprise Dependency Flow</div>
+
+              <div class="eco-flow">
+                <div class="eco-node fu fu-2" onclick="showPanel('marketing')">
+                  <div class="eco-node-icon" style="border-color:rgba(251,191,36,0.3);color:#fbbf24">◉</div>
+                  <div class="eco-node-info">
+                    <div class="eco-node-name">Marketing Intelligence</div>
+                    <div class="eco-node-metric">Campaign spend ↑22% · Driving demand</div>
+                  </div>
+                  <div class="eco-node-signal" style="background:#fbbf24;box-shadow:0 0 7px #fbbf24;animation:blink 1.8s ease-in-out infinite"></div>
+                </div>
+                <div class="eco-connector"></div>
+
+                <div class="eco-node fu fu-3" onclick="showPanel('sales')">
+                  <div class="eco-node-icon" style="border-color:rgba(0,255,170,0.3);color:#00ffaa">◆</div>
+                  <div class="eco-node-info">
+                    <div class="eco-node-name">Sales Intelligence</div>
+                    <div class="eco-node-metric">Pipeline $2.1M · Conv. 18.4%</div>
+                  </div>
+                  <div class="eco-node-signal" style="background:#00ffaa;box-shadow:0 0 7px #00ffaa;animation:blink 2.2s ease-in-out infinite"></div>
+                </div>
+                <div class="eco-connector"></div>
+
+                <div class="eco-node fu fu-4" onclick="showPanel('financial')">
+                  <div class="eco-node-icon" style="border-color:rgba(255,51,85,0.35);color:#ff3355">◇</div>
+                  <div class="eco-node-info">
+                    <div class="eco-node-name">Financial Intelligence</div>
+                    <div class="eco-node-metric">Revenue $4.2M · APAC risk elevated</div>
+                  </div>
+                  <div class="eco-node-signal" style="background:#ff3355;box-shadow:0 0 7px #ff3355;animation:blink 0.9s ease-in-out infinite"></div>
+                </div>
+                <div class="eco-connector"></div>
+
+                <div class="eco-node fu fu-5" onclick="showPanel('operations')">
+                  <div class="eco-node-icon" style="border-color:rgba(255,51,85,0.35);color:#ff3355">⬡</div>
+                  <div class="eco-node-info">
+                    <div class="eco-node-name">Operations Intelligence</div>
+                    <div class="eco-node-metric">Lead times +34% · Critical disruption</div>
+                  </div>
+                  <div class="eco-node-signal" style="background:#ff3355;box-shadow:0 0 7px #ff3355;animation:blink 0.9s ease-in-out infinite"></div>
+                </div>
+                <div class="eco-connector"></div>
+
+                <div class="eco-node fu fu-6" onclick="showPanel('support')">
+                  <div class="eco-node-icon" style="border-color:rgba(124,58,237,0.3);color:#7c3aed">◎</div>
+                  <div class="eco-node-info">
+                    <div class="eco-node-name">Customer Support</div>
+                    <div class="eco-node-metric">NPS -12 pts · Tickets +28%</div>
+                  </div>
+                  <div class="eco-node-signal" style="background:#fbbf24;box-shadow:0 0 7px #fbbf24;animation:blink 1.8s ease-in-out infinite"></div>
+                </div>
+                <div class="eco-connector"></div>
+
+                <div class="eco-node eco-active fu fu-7" onclick="showPanel('executive')">
+                  <div class="eco-node-icon" style="border-color:rgba(0,212,255,0.4);color:#00d4ff;box-shadow:0 0 14px rgba(0,212,255,0.15)">◈</div>
+                  <div class="eco-node-info">
+                    <div class="eco-node-name">Executive Intelligence</div>
+                    <div class="eco-node-metric">Risk index 6.3 · Board review flagged</div>
+                  </div>
+                  <div class="eco-node-signal" style="background:#00d4ff;box-shadow:0 0 7px #00d4ff;animation:blink 2.2s ease-in-out infinite"></div>
+                </div>
+              </div>
+
+              <!-- System Status Box -->
+              <div class="sys-status-box">
+                <div class="sys-status-title">SYSTEM STATUS</div>
+                <div class="sys-status-row">
+                  <span class="sys-status-key">Neural Core</span>
+                  <span class="sys-status-val sv-ok">OPERATIONAL</span>
+                </div>
+                <div class="sys-status-row">
+                  <span class="sys-status-key">Data Pipelines</span>
+                  <span class="sys-status-val sv-ok">6/6 LIVE</span>
+                </div>
+                <div class="sys-status-row">
+                  <span class="sys-status-key">Alert Engine</span>
+                  <span class="sys-status-val sv-ok">ACTIVE · 5 ALERTS</span>
+                </div>
+                <div class="sys-status-row">
+                  <span class="sys-status-key">AI Stability</span>
+                  <span class="sys-status-val sv-ok">98.6%</span>
+                </div>
+                <div class="sys-status-row">
+                  <span class="sys-status-key">Risk Threshold</span>
+                  <span class="sys-status-val sv-crit">ELEVATED 6.3/10</span>
+                </div>
+                <div class="sys-status-row">
+                  <span class="sys-status-key">Ops Efficiency</span>
+                  <span class="sys-status-val sv-warn">79.1% (−target)</span>
+                </div>
+              </div>
+
+              <div class="sys-footer">AXIOM OS · Real-Time Intelligence · Updated <span id="last-update">now</span></div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /panel-home -->
+
+      <!-- ─── IFRAME PANELS ─── -->
+      <!-- Each panel is position:absolute inset:0, controlled by .active class -->
+
+      <!-- EXECUTIVE -->
+      <div class="panel" id="panel-executive" style="display:none;flex-direction:column">
+        <div class="iframe-header">
+          <div class="iframe-module-icon" style="border-color:rgba(0,212,255,0.3);color:#00d4ff;box-shadow:0 0 12px rgba(0,212,255,0.12)">◈</div>
+          <div>
+            <div class="iframe-title">Executive Intelligence</div>
+            <div class="iframe-url mono">invalid-52.github.io/executive-dashbaord</div>
+          </div>
+          <span class="iframe-badge ib-live">● LIVE</span>
+          <div class="iframe-actions">
+            <div class="if-btn" onclick="reloadFrame('executive')">↺ Reload</div>
+            <div class="if-btn primary" onclick="openDirect('executive')">⤤ Open Full</div>
+          </div>
+        </div>
+        <div class="iframe-notice">
+          <span class="in-icon">ℹ</span>
+          <span class="in-text">Dashboard embedded from GitHub Pages. If blocked by browser security, use the Open Full button.</span>
+          <span class="in-link" onclick="openDirect('executive')">Open in new tab →</span>
+        </div>
+        <div class="iframe-wrap">
+          <div class="iframe-loading" id="executive-loading">
+            <div class="if-load-ring"><div class="if-load-dot"></div></div>
+            <div class="if-load-text mono">CONNECTING EXECUTIVE INTELLIGENCE...</div>
+            <div class="if-load-bar"><div class="if-load-bar-fill"></div></div>
+            <div class="if-load-url mono">invalid-52.github.io/executive-dashbaord</div>
+          </div>
+          <div class="iframe-fallback" id="executive-fallback">
+            <div class="ifb-icon">◈</div>
+            <div class="ifb-title">Executive Intelligence Dashboard</div>
+            <div class="ifb-desc">This dashboard is deployed on GitHub Pages. Due to browser security policies (X-Frame-Options / CSP), it cannot be embedded in an iframe. Click below to open it directly.</div>
+            <div class="ifb-url mono">https://invalid-52.github.io/executive-dashbaord/</div>
+            <div class="ifb-actions">
+              <div class="ifb-btn primary" onclick="openDirect('executive')">⤤ Open Dashboard</div>
+              <div class="ifb-btn secondary" onclick="reloadFrame('executive')">↺ Try Reload</div>
+            </div>
+            <div class="ifb-note">Tip: Open the dashboard in a new tab for the full experience. The AXIOM OS will remain active in this tab.</div>
+          </div>
+          <iframe id="executive-frame" class="the-iframe" src="about:blank" title="Executive Intelligence Dashboard" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-popups-to-escape-sandbox" referrerpolicy="no-referrer-when-downgrade" loading="eager" onload="handleFrameLoad('executive')" onerror="handleFrameError('executive')"></iframe>
+        </div>
+      </div>
+
+      <!-- SALES -->
+      <div class="panel" id="panel-sales" style="display:none;flex-direction:column">
+        <div class="iframe-header">
+          <div class="iframe-module-icon" style="border-color:rgba(0,255,170,0.3);color:#00ffaa;box-shadow:0 0 12px rgba(0,255,170,0.12)">◆</div>
+          <div>
+            <div class="iframe-title">Sales Intelligence</div>
+            <div class="iframe-url mono">invalid-52.github.io/sales-dashbaord</div>
+          </div>
+          <span class="iframe-badge ib-live">● LIVE</span>
+          <div class="iframe-actions">
+            <div class="if-btn" onclick="reloadFrame('sales')">↺ Reload</div>
+            <div class="if-btn primary" onclick="openDirect('sales')">⤤ Open Full</div>
+          </div>
+        </div>
+        <div class="iframe-notice">
+          <span class="in-icon">ℹ</span>
+          <span class="in-text">Dashboard embedded from GitHub Pages. If blocked by browser security, use the Open Full button.</span>
+          <span class="in-link" onclick="openDirect('sales')">Open in new tab →</span>
+        </div>
+        <div class="iframe-wrap">
+          <div class="iframe-loading" id="sales-loading">
+            <div class="if-load-ring"><div class="if-load-dot"></div></div>
+            <div class="if-load-text mono">CONNECTING SALES INTELLIGENCE...</div>
+            <div class="if-load-bar"><div class="if-load-bar-fill"></div></div>
+            <div class="if-load-url mono">invalid-52.github.io/sales-dashbaord</div>
+          </div>
+          <div class="iframe-fallback" id="sales-fallback">
+            <div class="ifb-icon">◆</div>
+            <div class="ifb-title">Sales Intelligence Dashboard</div>
+            <div class="ifb-desc">This dashboard is deployed on GitHub Pages. Due to browser security policies (X-Frame-Options / CSP), it cannot be embedded in an iframe. Click below to open it directly.</div>
+            <div class="ifb-url mono">https://invalid-52.github.io/sales-dashbaord/</div>
+            <div class="ifb-actions">
+              <div class="ifb-btn primary" onclick="openDirect('sales')">⤤ Open Dashboard</div>
+              <div class="ifb-btn secondary" onclick="reloadFrame('sales')">↺ Try Reload</div>
+            </div>
+            <div class="ifb-note">Tip: Open the dashboard in a new tab for the full experience.</div>
+          </div>
+          <iframe id="sales-frame" class="the-iframe" src="about:blank" title="Sales Intelligence Dashboard" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-popups-to-escape-sandbox" referrerpolicy="no-referrer-when-downgrade" loading="eager" onload="handleFrameLoad('sales')" onerror="handleFrameError('sales')"></iframe>
+        </div>
+      </div>
+
+      <!-- MARKETING -->
+      <div class="panel" id="panel-marketing" style="display:none;flex-direction:column">
+        <div class="iframe-header">
+          <div class="iframe-module-icon" style="border-color:rgba(251,191,36,0.3);color:#fbbf24;box-shadow:0 0 12px rgba(251,191,36,0.12)">◉</div>
+          <div>
+            <div class="iframe-title">Marketing Intelligence</div>
+            <div class="iframe-url mono">invalid-52.github.io/marketing-dashboard</div>
+          </div>
+          <span class="iframe-badge" style="color:#fbbf24;background:rgba(251,191,36,0.07);border:1px solid rgba(251,191,36,0.2)">⚠ ALERT</span>
+          <div class="iframe-actions">
+            <div class="if-btn" onclick="reloadFrame('marketing')">↺ Reload</div>
+            <div class="if-btn primary" onclick="openDirect('marketing')">⤤ Open Full</div>
+          </div>
+        </div>
+        <div class="iframe-notice">
+          <span class="in-icon">ℹ</span>
+          <span class="in-text">Dashboard embedded from GitHub Pages. If blocked by browser security, use the Open Full button.</span>
+          <span class="in-link" onclick="openDirect('marketing')">Open in new tab →</span>
+        </div>
+        <div class="iframe-wrap">
+          <div class="iframe-loading" id="marketing-loading">
+            <div class="if-load-ring"><div class="if-load-dot"></div></div>
+            <div class="if-load-text mono">CONNECTING MARKETING INTELLIGENCE...</div>
+            <div class="if-load-bar"><div class="if-load-bar-fill"></div></div>
+            <div class="if-load-url mono">invalid-52.github.io/marketing-dashboard</div>
+          </div>
+          <div class="iframe-fallback" id="marketing-fallback">
+            <div class="ifb-icon">◉</div>
+            <div class="ifb-title">Marketing Intelligence Dashboard</div>
+            <div class="ifb-desc">This dashboard is deployed on GitHub Pages. Due to browser security policies (X-Frame-Options / CSP), it cannot be embedded in an iframe. Click below to open it directly.</div>
+            <div class="ifb-url mono">https://invalid-52.github.io/marketing-dashboard/</div>
+            <div class="ifb-actions">
+              <div class="ifb-btn primary" onclick="openDirect('marketing')">⤤ Open Dashboard</div>
+              <div class="ifb-btn secondary" onclick="reloadFrame('marketing')">↺ Try Reload</div>
+            </div>
+            <div class="ifb-note">Tip: Open the dashboard in a new tab for the full experience.</div>
+          </div>
+          <iframe id="marketing-frame" class="the-iframe" src="about:blank" title="Marketing Intelligence Dashboard" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-popups-to-escape-sandbox" referrerpolicy="no-referrer-when-downgrade" loading="eager" onload="handleFrameLoad('marketing')" onerror="handleFrameError('marketing')"></iframe>
+        </div>
+      </div>
+
+      <!-- FINANCIAL -->
+      <div class="panel" id="panel-financial" style="display:none;flex-direction:column">
+        <div class="iframe-header">
+          <div class="iframe-module-icon" style="border-color:rgba(79,142,247,0.3);color:#4f8ef7;box-shadow:0 0 12px rgba(79,142,247,0.12)">◇</div>
+          <div>
+            <div class="iframe-title">Financial Intelligence</div>
+            <div class="iframe-url mono">invalid-52.github.io/financial-dashboard</div>
+          </div>
+          <span class="iframe-badge" style="color:#ff3355;background:rgba(255,51,85,0.07);border:1px solid rgba(255,51,85,0.2)">⚠ CRITICAL</span>
+          <div class="iframe-actions">
+            <div class="if-btn" onclick="reloadFrame('financial')">↺ Reload</div>
+            <div class="if-btn primary" onclick="openDirect('financial')">⤤ Open Full</div>
+          </div>
+        </div>
+        <div class="iframe-notice">
+          <span class="in-icon">ℹ</span>
+          <span class="in-text">Dashboard embedded from GitHub Pages. If blocked by browser security, use the Open Full button.</span>
+          <span class="in-link" onclick="openDirect('financial')">Open in new tab →</span>
+        </div>
+        <div class="iframe-wrap">
+          <div class="iframe-loading" id="financial-loading">
+            <div class="if-load-ring"><div class="if-load-dot"></div></div>
+            <div class="if-load-text mono">CONNECTING FINANCIAL INTELLIGENCE...</div>
+            <div class="if-load-bar"><div class="if-load-bar-fill"></div></div>
+            <div class="if-load-url mono">invalid-52.github.io/financial-dashboard</div>
+          </div>
+          <div class="iframe-fallback" id="financial-fallback">
+            <div class="ifb-icon">◇</div>
+            <div class="ifb-title">Financial Intelligence Dashboard</div>
+            <div class="ifb-desc">This dashboard is deployed on GitHub Pages. Due to browser security policies (X-Frame-Options / CSP), it cannot be embedded in an iframe. Click below to open it directly.</div>
+            <div class="ifb-url mono">https://invalid-52.github.io/financial-dashboard/</div>
+            <div class="ifb-actions">
+              <div class="ifb-btn primary" onclick="openDirect('financial')">⤤ Open Dashboard</div>
+              <div class="ifb-btn secondary" onclick="reloadFrame('financial')">↺ Try Reload</div>
+            </div>
+            <div class="ifb-note">Tip: Open the dashboard in a new tab for the full experience.</div>
+          </div>
+          <iframe id="financial-frame" class="the-iframe" src="about:blank" title="Financial Intelligence Dashboard" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-popups-to-escape-sandbox" referrerpolicy="no-referrer-when-downgrade" loading="eager" onload="handleFrameLoad('financial')" onerror="handleFrameError('financial')"></iframe>
+        </div>
+      </div>
+
+      <!-- OPERATIONS -->
+      <div class="panel" id="panel-operations" style="display:none;flex-direction:column">
+        <div class="iframe-header">
+          <div class="iframe-module-icon" style="border-color:rgba(255,51,85,0.3);color:#ff3355;box-shadow:0 0 12px rgba(255,51,85,0.12)">⬡</div>
+          <div>
+            <div class="iframe-title">Operations Intelligence</div>
+            <div class="iframe-url mono">invalid-52.github.io/operations-supply-chain-dashboard</div>
+          </div>
+          <span class="iframe-badge" style="color:#ff3355;background:rgba(255,51,85,0.07);border:1px solid rgba(255,51,85,0.2)">⚠ CRITICAL</span>
+          <div class="iframe-actions">
+            <div class="if-btn" onclick="reloadFrame('operations')">↺ Reload</div>
+            <div class="if-btn primary" onclick="openDirect('operations')">⤤ Open Full</div>
+          </div>
+        </div>
+        <div class="iframe-notice">
+          <span class="in-icon">ℹ</span>
+          <span class="in-text">Dashboard embedded from GitHub Pages. If blocked by browser security, use the Open Full button.</span>
+          <span class="in-link" onclick="openDirect('operations')">Open in new tab →</span>
+        </div>
+        <div class="iframe-wrap">
+          <div class="iframe-loading" id="operations-loading">
+            <div class="if-load-ring"><div class="if-load-dot"></div></div>
+            <div class="if-load-text mono">CONNECTING OPERATIONS INTELLIGENCE...</div>
+            <div class="if-load-bar"><div class="if-load-bar-fill"></div></div>
+            <div class="if-load-url mono">invalid-52.github.io/operations-supply-chain-dashboard</div>
+          </div>
+          <div class="iframe-fallback" id="operations-fallback">
+            <div class="ifb-icon">⬡</div>
+            <div class="ifb-title">Operations Intelligence Dashboard</div>
+            <div class="ifb-desc">This dashboard is deployed on GitHub Pages. Due to browser security policies (X-Frame-Options / CSP), it cannot be embedded in an iframe. Click below to open it directly.</div>
+            <div class="ifb-url mono">https://invalid-52.github.io/operations-supply-chain-dashboard/</div>
+            <div class="ifb-actions">
+              <div class="ifb-btn primary" onclick="openDirect('operations')">⤤ Open Dashboard</div>
+              <div class="ifb-btn secondary" onclick="reloadFrame('operations')">↺ Try Reload</div>
+            </div>
+            <div class="ifb-note">Tip: Open the dashboard in a new tab for the full experience.</div>
+          </div>
+          <iframe id="operations-frame" class="the-iframe" src="about:blank" title="Operations Intelligence Dashboard" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-popups-to-escape-sandbox" referrerpolicy="no-referrer-when-downgrade" loading="eager" onload="handleFrameLoad('operations')" onerror="handleFrameError('operations')"></iframe>
+        </div>
+      </div>
+
+      <!-- SUPPORT -->
+      <div class="panel" id="panel-support" style="display:none;flex-direction:column">
+        <div class="iframe-header">
+          <div class="iframe-module-icon" style="border-color:rgba(124,58,237,0.3);color:#7c3aed;box-shadow:0 0 12px rgba(124,58,237,0.12)">◎</div>
+          <div>
+            <div class="iframe-title">Customer Support Intelligence</div>
+            <div class="iframe-url mono">invalid-52.github.io/customer-support-dashboard</div>
+          </div>
+          <span class="iframe-badge" style="color:#fbbf24;background:rgba(251,191,36,0.07);border:1px solid rgba(251,191,36,0.2)">⚠ WARNING</span>
+          <div class="iframe-actions">
+            <div class="if-btn" onclick="reloadFrame('support')">↺ Reload</div>
+            <div class="if-btn primary" onclick="openDirect('support')">⤤ Open Full</div>
+          </div>
+        </div>
+        <div class="iframe-notice">
+          <span class="in-icon">ℹ</span>
+          <span class="in-text">Dashboard embedded from GitHub Pages. If blocked by browser security, use the Open Full button.</span>
+          <span class="in-link" onclick="openDirect('support')">Open in new tab →</span>
+        </div>
+        <div class="iframe-wrap">
+          <div class="iframe-loading" id="support-loading">
+            <div class="if-load-ring"><div class="if-load-dot"></div></div>
+            <div class="if-load-text mono">CONNECTING CUSTOMER SUPPORT INTELLIGENCE...</div>
+            <div class="if-load-bar"><div class="if-load-bar-fill"></div></div>
+            <div class="if-load-url mono">invalid-52.github.io/customer-support-dashboard</div>
+          </div>
+          <div class="iframe-fallback" id="support-fallback">
+            <div class="ifb-icon">◎</div>
+            <div class="ifb-title">Customer Support Intelligence Dashboard</div>
+            <div class="ifb-desc">This dashboard is deployed on GitHub Pages. Due to browser security policies (X-Frame-Options / CSP), it cannot be embedded in an iframe. Click below to open it directly.</div>
+            <div class="ifb-url mono">https://invalid-52.github.io/customer-support-dashboard/</div>
+            <div class="ifb-actions">
+              <div class="ifb-btn primary" onclick="openDirect('support')">⤤ Open Dashboard</div>
+              <div class="ifb-btn secondary" onclick="reloadFrame('support')">↺ Try Reload</div>
+            </div>
+            <div class="ifb-note">Tip: Open the dashboard in a new tab for the full experience.</div>
+          </div>
+          <iframe id="support-frame" class="the-iframe" src="about:blank" title="Customer Support Intelligence Dashboard" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-popups-to-escape-sandbox" referrerpolicy="no-referrer-when-downgrade" loading="eager" onload="handleFrameLoad('support')" onerror="handleFrameError('support')"></iframe>
+        </div>
+      </div>
+
+    </div><!-- /workspace -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- TOAST -->
+<div id="toasts"></div>
+
+<!-- PROFILE MENU -->
+<div class="profile-menu" id="profile-menu">
+  <div class="pm-head">
+    <div class="pm-avatar">AX</div>
+    <div>
+      <div class="pm-name">Enterprise Admin</div>
+      <div class="pm-role">Full Access · All Modules</div>
+    </div>
+  </div>
+  <div class="pm-body">
+    <div class="pm-item" onclick="toast('Profile settings coming soon','info');toggleProfileMenu()"><span class="pm-item-icon">⚙</span>Preferences</div>
+    <div class="pm-item" onclick="toast('6/6 pipelines nominal · AI stability 98.6%','ok');toggleProfileMenu()"><span class="pm-item-icon">◈</span>System Diagnostics</div>
+    <div class="pm-item" onclick="openCmdk();toggleProfileMenu()"><span class="pm-item-icon">⌕</span>Command Palette</div>
+    <div class="pm-sep"></div>
+    <div class="pm-item" onclick="toast('Session secured — sign-out disabled in demo mode','warn');toggleProfileMenu()"><span class="pm-item-icon">⏻</span>Sign Out</div>
+  </div>
+  <div class="pm-foot">AXIOM OS · BUILD 2026.07.07</div>
+</div>
+
+<!-- COMMAND PALETTE -->
+<div id="cmdk-overlay" onclick="if(event.target===this)closeCmdk()">
+  <div class="cmdk-box" onclick="event.stopPropagation()">
+    <div class="cmdk-input-row">
+      <span class="cmdk-icon">⌕</span>
+      <input id="cmdk-input" type="text" placeholder="Jump to a module, alert, or action..." autocomplete="off" oninput="cmdkFilter()" onkeydown="cmdkKeydown(event)">
+      <span class="cmdk-esc">ESC</span>
+    </div>
+    <div class="cmdk-results" id="cmdk-results"></div>
+    <div class="cmdk-footer">
+      <span><kbd>↑↓</kbd> Navigate</span>
+      <span><kbd>↵</kbd> Select</span>
+      <span><kbd>ESC</kbd> Close</span>
+    </div>
+  </div>
+</div>
+
+<!-- ALERT PANEL -->
+<div id="alert-panel">
+  <div class="ap-header">
+    <span class="ap-title"><span class="ap-title-icon">🔔</span>AI Alert Center</span>
+    <span class="ap-count">5 ACTIVE</span>
+    <div class="ap-close" onclick="toggleAlerts()">✕</div>
+  </div>
+  <div class="ap-body">
+    <div class="ap-section-label">Critical Alerts</div>
+    <div class="ap-item" style="--ai-c:#ff3355" onclick="showPanel('operations');toggleAlerts()">
+      <div class="ap-item-header">
+        <span class="ap-sev sev-crit">CRITICAL</span>
+        <span class="ap-item-title">Supply Chain Disruption</span>
+        <span class="ap-time">2m ago</span>
+      </div>
+      <div class="ap-item-body">Fulfillment lead times elevated +34% above baseline. Downstream impact on customer satisfaction detected. Immediate operations review required.</div>
+      <div class="ap-item-action">→ View Operations Intelligence</div>
+    </div>
+    <div class="ap-item" style="--ai-c:#ff3355" onclick="showPanel('financial');toggleAlerts()">
+      <div class="ap-item-header">
+        <span class="ap-sev sev-crit">CRITICAL</span>
+        <span class="ap-item-title">Financial Runway Risk</span>
+        <span class="ap-time">22m ago</span>
+      </div>
+      <div class="ap-item-body">APAC revenue $340K below Q3 forecast. Revenue slowdown affecting financial runway projections. CFO review recommended.</div>
+      <div class="ap-item-action">→ View Financial Intelligence</div>
+    </div>
+    <div class="ap-section-label" style="margin-top:12px">Warnings</div>
+    <div class="ap-item" style="--ai-c:#fbbf24" onclick="showPanel('marketing');toggleAlerts()">
+      <div class="ap-item-header">
+        <span class="ap-sev sev-warn">WARNING</span>
+        <span class="ap-item-title">Marketing Demand Surge</span>
+        <span class="ap-time">8m ago</span>
+      </div>
+      <div class="ap-item-body">Campaign spike increasing operational demand by +22% above projected baseline. Operations team not prepared for volume increase.</div>
+      <div class="ap-item-action">→ View Marketing Intelligence</div>
+    </div>
+    <div class="ap-item" style="--ai-c:#fbbf24" onclick="showPanel('support');toggleAlerts()">
+      <div class="ap-item-header">
+        <span class="ap-sev sev-warn">WARNING</span>
+        <span class="ap-item-title">Customer Trust Declining</span>
+        <span class="ap-time">15m ago</span>
+      </div>
+      <div class="ap-item-body">NPS score dropped -12 pts due to delayed fulfillment. Support ticket volume up +28%. Churn risk elevated for enterprise accounts.</div>
+      <div class="ap-item-action">→ View Customer Support</div>
+    </div>
+    <div class="ap-section-label" style="margin-top:12px">Informational</div>
+    <div class="ap-item" style="--ai-c:#00d4ff" onclick="showPanel('executive');toggleAlerts()">
+      <div class="ap-item-header">
+        <span class="ap-sev sev-info">INFO</span>
+        <span class="ap-item-title">Executive Risk Index Elevated</span>
+        <span class="ap-time">1h ago</span>
+      </div>
+      <div class="ap-item-body">Composite risk index at 6.3 — above recommended 5.0 threshold. Q3 board review recommended. All module heads should prepare briefings.</div>
+      <div class="ap-item-action">→ View Executive Intelligence</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// THREE.JS BACKGROUND
+// ═══════════════════════════════════════════════
+(function(){
+  const c=document.getElementById('bg-canvas');
+  if(!c||!window.THREE) return;
+  const r=new THREE.WebGLRenderer({canvas:c,alpha:true,antialias:false});
+  r.setPixelRatio(Math.min(devicePixelRatio,1.5));
+  r.setSize(innerWidth,innerHeight);
+  const scene=new THREE.Scene();
+  const cam=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,.1,1000);
+  cam.position.z=5;
+
+  // Particles
+  const N=1400;
+  const pos=new Float32Array(N*3);
+  const col=new Float32Array(N*3);
+  for(let i=0;i<N;i++){
+    pos[i*3]=(Math.random()-.5)*18;
+    pos[i*3+1]=(Math.random()-.5)*18;
+    pos[i*3+2]=(Math.random()-.5)*18;
+    const t=Math.random();
+    if(t<.5){col[i*3]=0;col[i*3+1]=.83;col[i*3+2]=1}      // cyan
+    else if(t<.8){col[i*3]=.31;col[i*3+1]=.56;col[i*3+2]=.97} // blue
+    else{col[i*3]=.49;col[i*3+1]=.23;col[i*3+2]=.93}          // violet
+  }
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  geo.setAttribute('color',new THREE.BufferAttribute(col,3));
+  const mat=new THREE.PointsMaterial({size:.018,transparent:true,opacity:.3,vertexColors:true,sizeAttenuation:true});
+  const pts=new THREE.Points(geo,mat);
+  scene.add(pts);
+
+  // Connection lines
+  const lGeo=new THREE.BufferGeometry();
+  const lPos=[];
+  for(let i=0;i<80;i++){
+    const a=(Math.random()*N|0)*3,b=(Math.random()*N|0)*3;
+    lPos.push(pos[a],pos[a+1],pos[a+2],pos[b],pos[b+1],pos[b+2]);
+  }
+  lGeo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(lPos),3));
+  const lMat=new THREE.LineBasicMaterial({color:0x4f8ef7,transparent:true,opacity:.06});
+  scene.add(new THREE.LineSegments(lGeo,lMat));
+
+  let t=0;
+  (function loop(){
+    requestAnimationFrame(loop);
+    t+=.0006;
+    pts.rotation.y=t*.35;pts.rotation.x=t*.12;pts.rotation.z=t*.05;
+    r.render(scene,cam);
+  })();
+  window.addEventListener('resize',()=>{
+    cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();
+    r.setSize(innerWidth,innerHeight);
+  });
+})();
+
+// ═══════════════════════════════════════════════
+// PRELOADER
+// ═══════════════════════════════════════════════
+const statusMsgs=[
+  'INITIALIZING NEURAL CORE...',
+  'CONNECTING INTELLIGENCE MODULES...',
+  'CALIBRATING AI ALERT ENGINE...',
+  'LOADING AXIOM ENTERPRISE OS...',
+  'VERIFYING DATA PIPELINES...',
+  'ALL SYSTEMS ONLINE ✓'
+];
+let si=0;
+const sEl=document.getElementById('pl-status');
+const pEl=document.getElementById('pl-pct');
+const pcts=[0,18,36,56,76,100];
+const sInt=setInterval(()=>{
+  si++;
+  if(si<statusMsgs.length){
+    if(sEl) sEl.textContent=statusMsgs[si];
+    if(pEl) pEl.textContent=pcts[si]+'%';
+  }
+  if(si>=statusMsgs.length-1) clearInterval(sInt);
+},480);
+
+setTimeout(()=>{
+  const pl=document.getElementById('preloader');
+  if(pl){pl.style.transition='opacity .7s ease';pl.style.opacity='0';}
+  setTimeout(()=>{
+    if(pl) pl.style.display='none';
+    const app=document.getElementById('app');
+    if(app) app.style.opacity='1';
+    // Animate KPI bars
+    setTimeout(()=>{
+      document.querySelectorAll('.kpi-bar-fill').forEach((el,i)=>{
+        const w=el.getAttribute('data-width')||'0';
+        setTimeout(()=>{el.style.width=w+'%'},i*90);
+      });
+    },200);
+    toast('AXIOM Enterprise Intelligence OS initialized ✓','ok');
+    setTimeout(()=>toast('6 intelligence modules connected · All systems nominal','ok'),900);
+    setTimeout(()=>toast('⚠ 5 active alerts require attention','warn'),1700);
+  },700);
+},3100);
+
+// ═══════════════════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════════════════
+function updateClock(){
+  const n=new Date();
+  const p=v=>String(v).padStart(2,'0');
+  const el=document.getElementById('hd-clock');
+  if(el) el.textContent=`${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())} UTC`;
+  const lu=document.getElementById('last-update');
+  if(lu){
+    const d=p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds());
+    lu.textContent=d;
+  }
+}
+setInterval(updateClock,1000);updateClock();
+
+// ═══════════════════════════════════════════════
+// MODULE CONFIG
+// ═══════════════════════════════════════════════
+const iframeUrls={
+  executive:'https://invalid-52.github.io/executive-dashbaord/',
+  sales:'https://invalid-52.github.io/sales-dashbaord/',
+  marketing:'https://invalid-52.github.io/marketing-dashboard/',
+  financial:'https://invalid-52.github.io/financial-dashboard/',
+  operations:'https://invalid-52.github.io/operations-supply-chain-dashboard/',
+  support:'https://invalid-52.github.io/customer-support-dashboard/'
+};
+const moduleNames={
+  home:'OVERVIEW',
+  executive:'EXECUTIVE INTELLIGENCE',
+  sales:'SALES INTELLIGENCE',
+  marketing:'MARKETING INTELLIGENCE',
+  financial:'FINANCIAL INTELLIGENCE',
+  operations:'OPERATIONS INTELLIGENCE',
+  support:'CUSTOMER SUPPORT INTELLIGENCE'
+};
+const loaded={};
+const frameTimers={};
+
+// ═══════════════════════════════════════════════
+// PANEL ROUTING — core function
+// ═══════════════════════════════════════════════
+function showPanel(id){
+  // Hide all panels
+  document.querySelectorAll('.panel').forEach(p=>{
+    p.classList.remove('active');
+    p.style.display='none';
+  });
+  // Deactivate nav
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+
+  const panel=document.getElementById('panel-'+id);
+  if(!panel) return;
+
+  if(id==='home'){
+    panel.style.display='block';
+  } else {
+    panel.style.display='flex';
+    // Load iframe if not yet attempted
+    if(!loaded[id]){
+      loaded[id]=true;
+      const frame=document.getElementById(id+'-frame');
+      if(frame && iframeUrls[id]){
+        // Set a timeout — if iframe doesn't call onload with real content in 8s, show fallback
+        frameTimers[id]=setTimeout(()=>{
+          showFallback(id);
+        },8000);
+        frame.src=iframeUrls[id];
+      }
+    }
+  }
+
+  panel.classList.add('active');
+
+  // Update nav
+  const nav=document.getElementById('nav-'+id);
+  if(nav) nav.classList.add('active');
+
+  // Update breadcrumb
+  const hm=document.getElementById('hd-module-name');
+  if(hm) hm.textContent=moduleNames[id]||id.toUpperCase();
+
+  // Close alert panel if open
+  if(alertOpen) toggleAlerts();
+}
+
+// ═══════════════════════════════════════════════
+// IFRAME LOAD HANDLER — smart detection
+// ═══════════════════════════════════════════════
+function handleFrameLoad(id){
+  const frame=document.getElementById(id+'-frame');
+  if(!frame) return;
+
+  // If src is about:blank, this is the initial load — ignore
+  if(!frame.src || frame.src==='about:blank' || frame.src===window.location.href.replace(/#.*/,'')+'about:blank') return;
+
+  // Clear the fallback timer
+  if(frameTimers[id]) clearTimeout(frameTimers[id]);
+
+  // Try to detect if the page loaded successfully
+  let blocked=false;
+  try {
+    // If we can access contentDocument, it loaded (same-origin or permissive)
+    const doc=frame.contentDocument;
+    if(doc && doc.body && doc.body.innerHTML.length > 50){
+      blocked=false;
+    } else if(doc && doc.body && doc.body.innerHTML.length === 0){
+      // Empty body — likely blocked
+      blocked=true;
+    }
+  } catch(e){
+    // Cross-origin but loaded — this is actually OK for cross-origin iframes
+    // The page loaded but we can't inspect it due to CORS — that's fine!
+    blocked=false;
+  }
+
+  if(blocked){
+    showFallback(id);
+    toast(moduleNames[id]+' · Embedding blocked by security policy','warn');
+  } else {
+    hideLoading(id);
+    toast(moduleNames[id]+' connected ✓','ok');
+  }
+}
+
+function handleFrameError(id){
+  if(frameTimers[id]) clearTimeout(frameTimers[id]);
+  showFallback(id);
+  toast(moduleNames[id]+' · Connection error','error');
+}
+
+function hideLoading(id){
+  const loading=document.getElementById(id+'-loading');
+  if(loading){
+    loading.style.opacity='0';
+    setTimeout(()=>{loading.style.display='none'},400);
+  }
+}
+
+function showFallback(id){
+  hideLoading(id);
+  const fallback=document.getElementById(id+'-fallback');
+  if(fallback) fallback.classList.add('show');
+}
+
+function hideFallback(id){
+  const fallback=document.getElementById(id+'-fallback');
+  if(fallback) fallback.classList.remove('show');
+}
+
+// ═══════════════════════════════════════════════
+// RELOAD & OPEN DIRECT
+// ═══════════════════════════════════════════════
+function reloadFrame(id){
+  // Reset state
+  loaded[id]=false;
+  hideFallback(id);
+  // Show loading
+  const loading=document.getElementById(id+'-loading');
+  if(loading){loading.style.display='flex';loading.style.opacity='1';}
+  // Reload
+  const frame=document.getElementById(id+'-frame');
+  if(frame){
+    frame.src='about:blank';
+    setTimeout(()=>{
+      if(iframeUrls[id]){
+        loaded[id]=true;
+        frameTimers[id]=setTimeout(()=>showFallback(id),8000);
+        frame.src=iframeUrls[id];
+      }
+    },300);
+  }
+  toast('Reloading '+moduleNames[id]+'...','info');
+}
+
+function openDirect(id){
+  if(iframeUrls[id]){
+    window.open(iframeUrls[id],'_blank','noopener,noreferrer');
+    toast('Opening '+moduleNames[id]+' in new tab...','info');
+  }
+}
+
+// ═══════════════════════════════════════════════
+// ALERT PANEL
+// ═══════════════════════════════════════════════
+let alertOpen=false;
+function toggleAlerts(){
+  alertOpen=!alertOpen;
+  document.getElementById('alert-panel').classList.toggle('open',alertOpen);
+}
+document.addEventListener('click',e=>{
+  if(!alertOpen) return;
+  const panel=document.getElementById('alert-panel');
+  const btn=document.querySelector('.hd-alert-btn');
+  if(!panel.contains(e.target)&&!(btn&&btn.contains(e.target))){
+    alertOpen=false;
+    panel.classList.remove('open');
+  }
+});
+
+// ═══════════════════════════════════════════════
+// PROFILE MENU
+// ═══════════════════════════════════════════════
+let profileOpen=false;
+function toggleProfileMenu(e){
+  if(e) e.stopPropagation();
+  profileOpen=!profileOpen;
+  document.getElementById('profile-menu').classList.toggle('open',profileOpen);
+}
+document.addEventListener('click',e=>{
+  if(!profileOpen) return;
+  const menu=document.getElementById('profile-menu');
+  const btn=document.querySelector('.hd-avatar');
+  if(!menu.contains(e.target)&&!(btn&&btn.contains(e.target))){
+    profileOpen=false;
+    menu.classList.remove('open');
+  }
+});
+
+// ═══════════════════════════════════════════════
+// COMMAND PALETTE
+// ═══════════════════════════════════════════════
+const cmdkActions=[
+  {group:'Modules',icon:'⌂',name:'Overview',sub:'Command center home',action:()=>showPanel('home')},
+  {group:'Modules',icon:'◈',name:'Executive Intelligence',sub:'Risk index 6.3 · Board review flagged',action:()=>showPanel('executive')},
+  {group:'Modules',icon:'◆',name:'Sales Intelligence',sub:'Pipeline $2.1M · Conv. 18.4%',action:()=>showPanel('sales')},
+  {group:'Modules',icon:'◉',name:'Marketing Intelligence',sub:'Campaign spend ↑22% · Driving demand',action:()=>showPanel('marketing')},
+  {group:'Modules',icon:'◇',name:'Financial Intelligence',sub:'Revenue $4.2M · APAC risk elevated',action:()=>showPanel('financial')},
+  {group:'Modules',icon:'⬡',name:'Operations Intelligence',sub:'Lead times +34% · Critical disruption',action:()=>showPanel('operations')},
+  {group:'Modules',icon:'◎',name:'Customer Support',sub:'NPS -12 pts · Tickets +28%',action:()=>showPanel('support')},
+  {group:'Actions',icon:'🔔',name:'Open AI Alert Center',sub:'5 active alerts',action:()=>toggleAlerts()},
+  {group:'Actions',icon:'↺',name:'Reload Executive dashboard',sub:'Refresh iframe connection',action:()=>reloadFrame('executive')},
+  {group:'Actions',icon:'↺',name:'Reload Sales dashboard',sub:'Refresh iframe connection',action:()=>reloadFrame('sales')},
+  {group:'Actions',icon:'↺',name:'Reload Marketing dashboard',sub:'Refresh iframe connection',action:()=>reloadFrame('marketing')},
+  {group:'Actions',icon:'↺',name:'Reload Financial dashboard',sub:'Refresh iframe connection',action:()=>reloadFrame('financial')},
+  {group:'Actions',icon:'↺',name:'Reload Operations dashboard',sub:'Refresh iframe connection',action:()=>reloadFrame('operations')},
+  {group:'Actions',icon:'↺',name:'Reload Support dashboard',sub:'Refresh iframe connection',action:()=>reloadFrame('support')},
+  {group:'Actions',icon:'⤤',name:'Open Executive in new tab',sub:iframeUrls.executive,action:()=>openDirect('executive')},
+  {group:'Actions',icon:'⤤',name:'Open Sales in new tab',sub:iframeUrls.sales,action:()=>openDirect('sales')},
+  {group:'Actions',icon:'⤤',name:'Open Marketing in new tab',sub:iframeUrls.marketing,action:()=>openDirect('marketing')},
+  {group:'Actions',icon:'⤤',name:'Open Financial in new tab',sub:iframeUrls.financial,action:()=>openDirect('financial')},
+  {group:'Actions',icon:'⤤',name:'Open Operations in new tab',sub:iframeUrls.operations,action:()=>openDirect('operations')},
+  {group:'Actions',icon:'⤤',name:'Open Support in new tab',sub:iframeUrls.support,action:()=>openDirect('support')},
+];
+let cmdkSel=0;
+let cmdkFiltered=cmdkActions;
+
+function openCmdk(){
+  const ov=document.getElementById('cmdk-overlay');
+  ov.classList.add('open');
+  const input=document.getElementById('cmdk-input');
+  input.value='';
+  cmdkSel=0;
+  cmdkFilter();
+  setTimeout(()=>input.focus(),50);
+}
+function closeCmdk(){
+  document.getElementById('cmdk-overlay').classList.remove('open');
+}
+function cmdkFilter(){
+  const q=document.getElementById('cmdk-input').value.trim().toLowerCase();
+  cmdkFiltered=!q?cmdkActions:cmdkActions.filter(a=>a.name.toLowerCase().includes(q)||a.sub.toLowerCase().includes(q)||a.group.toLowerCase().includes(q));
+  cmdkSel=0;
+  renderCmdk();
+}
+function renderCmdk(){
+  const wrap=document.getElementById('cmdk-results');
+  if(!cmdkFiltered.length){
+    wrap.innerHTML='<div class="cmdk-empty">No matches — try "sales", "alerts", or "open"</div>';
+    return;
+  }
+  let html='';
+  let lastGroup=null;
+  cmdkFiltered.forEach((a,i)=>{
+    if(a.group!==lastGroup){
+      html+=`<div class="cmdk-group-label">${a.group}</div>`;
+      lastGroup=a.group;
+    }
+    html+=`<div class="cmdk-item${i===cmdkSel?' sel':''}" data-i="${i}" onmouseenter="cmdkHover(${i})" onclick="cmdkRun(${i})">
+      <div class="cmdk-item-icon">${a.icon}</div>
+      <div class="cmdk-item-text">
+        <div class="cmdk-item-name">${a.name}</div>
+        <div class="cmdk-item-sub">${a.sub}</div>
+      </div>
+    </div>`;
+  });
+  wrap.innerHTML=html;
+}
+function cmdkHover(i){ cmdkSel=i; renderCmdk(); }
+function cmdkRun(i){
+  const a=cmdkFiltered[i];
+  if(!a) return;
+  closeCmdk();
+  a.action();
+}
+function cmdkKeydown(e){
+  if(e.key==='ArrowDown'){
+    e.preventDefault();
+    cmdkSel=Math.min(cmdkSel+1,cmdkFiltered.length-1);
+    renderCmdk();
+    scrollCmdkIntoView();
+  } else if(e.key==='ArrowUp'){
+    e.preventDefault();
+    cmdkSel=Math.max(cmdkSel-1,0);
+    renderCmdk();
+    scrollCmdkIntoView();
+  } else if(e.key==='Enter'){
+    e.preventDefault();
+    cmdkRun(cmdkSel);
+  } else if(e.key==='Escape'){
+    closeCmdk();
+  }
+}
+function scrollCmdkIntoView(){
+  const el=document.querySelector('.cmdk-item.sel');
+  if(el) el.scrollIntoView({block:'nearest'});
+}
+
+// ═══════════════════════════════════════════════
+// GLOBAL KEYBOARD SHORTCUTS
+// ═══════════════════════════════════════════════
+document.addEventListener('keydown',e=>{
+  const cmdkIsOpen=document.getElementById('cmdk-overlay').classList.contains('open');
+  // Cmd/Ctrl+K → open command palette
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){
+    e.preventDefault();
+    cmdkIsOpen?closeCmdk():openCmdk();
+    return;
+  }
+  // Escape → close whatever is open
+  if(e.key==='Escape'){
+    if(cmdkIsOpen) closeCmdk();
+    else if(alertOpen) toggleAlerts();
+    else if(profileOpen) toggleProfileMenu();
+    return;
+  }
+  // Don't hijack number keys while typing in the palette input
+  if(document.activeElement && document.activeElement.id==='cmdk-input') return;
+  const numMap={'1':'home','2':'executive','3':'sales','4':'marketing','5':'financial','6':'operations','7':'support'};
+  if(numMap[e.key]){
+    showPanel(numMap[e.key]);
+  }
+});
+
+
+function toast(msg,type='info'){
+  const w=document.getElementById('toasts');
+  if(!w) return;
+  const colors={ok:'#00ffaa',error:'#ff3355',warn:'#fbbf24',info:'#00d4ff'};
+  const icons={ok:'✦',error:'✕',warn:'⚠',info:'◉'};
+  const t=document.createElement('div');
+  t.className='toast-item';
+  t.style.setProperty('--t-color',colors[type]||colors.info);
+  t.innerHTML=`<span class="toast-icon" style="color:${colors[type]||colors.info}">${icons[type]||'◉'}</span><span class="toast-msg">${msg}</span>`;
+  w.appendChild(t);
+  setTimeout(()=>{
+    t.style.transition='all .35s ease';t.style.opacity='0';t.style.transform='translateX(24px) scale(.95)';
+    setTimeout(()=>{if(t.parentNode)t.remove()},350);
+  },4200);
+}
+</script>
+</body>
+</html>

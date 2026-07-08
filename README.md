@@ -252,12 +252,6 @@ cd axiom-enterprise-dashboard
 
 Open **`index.html`** in your browser.
 
----
-
----
-
----
-
 # ⭐ Highlights
 
 * Enterprise Intelligence Operating System

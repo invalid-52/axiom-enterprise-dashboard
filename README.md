@@ -223,19 +223,6 @@ axiom-enterprise-dashboard/
 | Customer Support Dashboard          | [https://invalid-52.github.io/customer-support-dashboard/](https://invalid-52.github.io/customer-support-dashboard/)               |
 
 ---
-
-# 📸 Screenshots
-
-* Enterprise Home
-* Executive Dashboard
-* Sales Dashboard
-* Marketing Dashboard
-* Financial Dashboard
-* Operations Dashboard
-* Customer Support Dashboard
-* Alert Center
-* Responsive Mobile View
-
 ---
 
 # 🔮 Future Enhancements
